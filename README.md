@@ -26,11 +26,10 @@ List = list
 
 # Nested Structs
 
-## Example 
+Object Composition by composing an object by incorporating another object into it and we can directly access 
+nested fields using dot notation. So OOP isn't it :)
 
-Example code
-
-<pre lang="markdown"><code>'''plaintext
+<pre lang="markdown"><code>
 thing Position
 	arg x 
 	arg y 
@@ -44,8 +43,8 @@ end
 pos = new Position [100,200]
 s = new Sleep["Bed",pos]
 
-print t.pos.x  ^^ Output: 100
-'''</code></pre>
+print s.pos.x  ^^ Output: 100
+</code></pre>
 
 
 # Arrays are one-based
