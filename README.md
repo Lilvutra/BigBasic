@@ -15,7 +15,9 @@ We are looking for more interesting name ideas buds
 We offer basic types:
 
 Text = str
+
 Number = (int, float)
+
 List = list
 
 # Tokens
@@ -23,6 +25,22 @@ List = list
 # Pattern matching
 
 # Nested Structs
+
+'''
+thing Position
+	arg x 
+	arg y 
+end 
+
+thing Sleep 
+	arg name 
+	arg pos 
+end 
+
+pos = new Position [100,200]
+s = new Sleep["Bed",pos]
+
+print t.pos.x  ^^ Output: 100
 
 # Arrays are one-based
 
