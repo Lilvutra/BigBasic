@@ -30,7 +30,7 @@ List = list
 
 Example code
 
-''''plaintext
+'''plaintext
 thing Position
 	arg x 
 	arg y 
@@ -45,6 +45,7 @@ pos = new Position [100,200]
 s = new Sleep["Bed",pos]
 
 print t.pos.x  ^^ Output: 100
+'''
 
 # Arrays are one-based
 
