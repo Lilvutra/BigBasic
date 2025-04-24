@@ -49,6 +49,12 @@ print s.pos.x  ^^ Output: 100
 
 # Arrays are one-based
 
+<pre lang="markdown"><code>
+
+arr = [1,2,3,4,5]
+
+print arr[1] ^^ return 1 
+
 # Lazy evaluation
 
 
