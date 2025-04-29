@@ -13,6 +13,8 @@ def test_lexer(input_text):
         else:
             print(token.type)
     print()
+    
+
 
 # Example inputs to test
 test_lexer("12 + 34")
@@ -25,7 +27,13 @@ test_lexer('"a string" + "another"')
 test_lexer("print input arg end")
 test_lexer("1hehe")
 test_lexer("hehe1")
-
+test_lexer("[]")
+test_lexer("1 + 2 - 3")
+test_lexer("[1,2,3,4]")
+test_lexer("@he.7")
+test_lexer("1.2.3")
+test_lexer("1.2 + 3.4")
+test_lexer("1@ + $#")
 
 # --- Input: 12 + 34 ---
 # INT:12

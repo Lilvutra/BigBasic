@@ -62,8 +62,12 @@ class Lexer:
             self.advance()
 
         value = self.text[start:self.idx]  # get the number string
-        return Token(TK_FLOAT, float(value)) if dot_found else Token(TK_INT, int(value))
-
+        try:
+            return Token(TK_FLOAT, float(value)) if dot_found else Token(TK_INT, int(value))
+        except ValueError:
+            # handle invalid number format
+            return Token('INVALID_NUMBER', value)
+        
     def read_identifier(self):
         # read an identifier (variable name/keyword)
         start = self.idx
@@ -86,6 +90,11 @@ class Lexer:
         self.advance()  # skip the closing quote
         return Token(TK_STRING, string_value)
 
+    def skip_comment(self):
+        # skip chars until EOF
+        while self.char is not None and self.char != '\n':
+            self.advance()
+
     def tokenize(self):
         # convert text into a list of tokens
         tokens = []
@@ -99,6 +108,9 @@ class Lexer:
             if self.char in DIGITS or self.char == '.':
                 # read a number token
                 tokens.append(self.read_number_token())
+            elif self.char == '^^':
+                # skip a comment
+                self.skip_comment()
             elif self.char in LETTERS or self.char == '_':
                 # read an identifier or keyword
                 tokens.append(self.read_identifier())
