@@ -10,6 +10,11 @@ Naming
 
 We are looking for more interesting name ideas buds
 
+# Comment
+
+In our language, users can add comments to code by using ^^. Sadly, we 
+currently don't support multiline comments 
+
 # Type Definitions
 
 We offer basic types:

@@ -18,6 +18,35 @@ TK_SEP          = 'COMMA'      # ,
 TK_LINEBREAK    = 'NEWLINE'    # \n
 TK_DONE         = 'EOF'        # End of File
 
+TK_BOOL         = 'BOOLEAN'    
+# Token Types 
+TK_STRING       = 'STRONK'     # string
+TK_INT          = 'INT'        # interger
+TK_FLOAT        = 'FLOAT'      # float
+TK_NAME         = 'IDENTIFIER' # IloveCow, CS201, etc
+TK_RESERVED     = 'KEYWORD'    # print, input, new, arg, end, if, then
+TK_ADD          = 'PLUS'       # +
+TK_SUB          = 'MINUS'      # -
+TK_ASSIGN       = 'EQ'         # =
+TK_LESS         = 'LT'         # <
+TK_MORE         = 'GT'         # >
+TK_L_PAREN      = 'LPAREN'     # (
+TK_R_PAREN      = 'RPAREN'     # )
+TK_L_BRACKET    = 'LSQUARE'    # [
+TK_R_BRACKET    = 'RSQUARE'    # ]
+TK_SEP          = 'COMMA'      # ,
+TK_LINEBREAK    = 'NEWLINE'    # \n
+TK_DONE         = 'EOF'        # End of File
+TK_BOOL         = 'BOOLEAN'    #Add tokens
+
+
+#Add keywords "true", "false"
+RESERVED_WORDS = [
+  'print', 'input', 'thing', 'arg', 'end', 'new', 
+  'if', 'then', 'else', 'for', 'in', 'let', 'true', 'false'
+]
+
+
 RESERVED_WORDS = [
   'print', 'input', 'thing', 'arg', 'end', 'new', 
   'if', 'then', 'else', 'for', 'in', 'let'

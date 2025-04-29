@@ -13,11 +13,12 @@ from token import (
 )
 
 def main():
-    lexer = Lexer("test.src", "arr = [10, 20, 30, a, b]")
+    lexer = Lexer("test.src", "arr[1]")
+    
     tokens = lexer.tokenize()
 
     parser = Parser(tokens)
-    ast = parser.parse_array() #rn, we cant have ast yet after parsing
+    ast = parser.parse_indexing() #rn, we cant have ast yet after parsing
     print(ast)
     #interpreter = Interpreter()
     #interpreter.eval_program(ast)
