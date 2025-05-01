@@ -1,0 +1,82 @@
+#!/usr/bin/env python3
+
+import sys
+import argparse
+
+from lexer import Lexer
+from parser import Parser
+from interpreter import Interpreter, RuntimeError as InterpreterError
+
+def run_file(path):
+    try:
+        code = open(path, 'r').read()
+    except IOError as e:
+        print(f"Could not open {path}: {e}", file=sys.stderr)
+        sys.exit(1)
+
+    lexer = Lexer(path, code)
+    tokens = lexer.tokenize()
+    parser = Parser(tokens)
+    ast = parser.parse()
+    interpreter = Interpreter()
+
+    try:
+        interpreter.interpret(ast)
+    except InterpreterError as e:
+        print(f"Runtime error: {e}", file=sys.stderr)
+        sys.exit(1)
+
+def repl():
+    print("BigBasic REPL v0.1  (Ctrl-D to exit)\n")
+    interpreter = Interpreter()
+    buffer = ""
+    while True:
+        try:
+            prompt = ">>> " if not buffer else "... "
+            line = input(prompt)
+        except EOFError:
+            print()  # newline on Ctrl-D
+            break
+
+        # ignore empty lines when nothing buffered
+        if not line.strip() and not buffer:
+            continue
+
+        buffer += line + "\n"
+        try:
+            # try to parse what we have so far
+            lexer = Lexer("<stdin>", buffer)
+            tokens = lexer.tokenize()
+            parser = Parser(tokens)
+            ast = parser.parse()
+            # if parse succeeded, execute and clear buffer
+            interpreter.interpret(ast)
+            buffer = ""
+        except InterpreterError as e:
+            print(f"Runtime error: {e}")
+            buffer = ""
+        except Exception as e:
+            # likely incomplete input, wait for more
+            msg = str(e)
+            if ("Unexpected end of input" in msg
+                or "Unexpected token" in msg
+                or "got EOF" in msg  # treat Expected 'end', got EOF as incomplete
+            ):
+                continue
+            # real parse error
+            print(f"Error: {e}")
+            buffer = ""
+
+def main():
+    p = argparse.ArgumentParser(prog="bigbasic",
+        description="BigBasic: run .bb scripts or drop into the REPL")
+    p.add_argument("file", nargs="?", help="Path to a .bb source file")
+    args = p.parse_args()
+
+    if args.file:
+        run_file(args.file)
+    else:
+        repl()
+
+if __name__ == "__main__":
+    main()
