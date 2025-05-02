@@ -4,7 +4,8 @@ from token import (
     TK_L_PAREN, TK_R_PAREN, TK_L_BRACKET, TK_R_BRACKET,
     TK_FLOAT, TK_INT, TK_STRING, TK_NAME, TK_RESERVED,
     TK_SEP, TK_LINEBREAK, TK_DONE, TK_BOOL, TK_EQEQ, TK_NEQ,
-    TK_MUL, TK_DIV, TK_MOD, TK_DOT,
+    TK_MUL, TK_DIV, TK_MOD, TK_DOT, TK_UNARY_NOT,
+    TK_UNARY_INC, TK_UNARY_DEC, TK_ASSIGN_ADD, TK_ASSIGN_SUB,
     RESERVED_WORDS
 )
 
@@ -39,6 +40,13 @@ class Lexer:
             '.': lambda: self.make_simple_token(TK_DOT),
         }
 
+    def peek(self, offset=1):
+        pos = self.position + offset
+        if pos < len(self.tokens):
+            return self.tokens[pos]
+        else:
+            return None
+        
     def advance(self):
         self.idx += 1
         self.char = self.text[self.idx] if self.idx < len(self.text) else None
@@ -111,6 +119,61 @@ class Lexer:
                 self.advance(); self.advance()
                 tokens.append(Token(TK_NEQ, '!='))
                 continue
+            #unary operators
+            if self.char == '!':
+                self.advance()
+                tokens.append(Token(TK_UNARY_NOT))
+                continue
+            if self.char == '+':
+                self.advance()
+                if self.char == '+':
+                    self.advance()
+                    tokens.append(Token(TK_UNARY_INC))
+                    continue
+                elif self.char == '=':
+                    self.advance()
+                    tokens.append(Token(TK_ASSIGN_ADD, '+='))
+                    continue
+            if self.char == '-':
+                self.advance()
+                if self.char == '-':
+                    self.advance()
+                    tokens.append(Token(TK_UNARY_DEC))
+                    continue
+                elif self.char == '=':
+                    self.advance()
+                    tokens.append(Token(TK_ASSIGN_SUB, '-='))
+                    continue
+                
+            #logical operators, currently ignored
+            """
+            if self.char == '&' and self.peek() == '&':
+                self.advance(); self.advance()
+                tokens.append(Token(TK_AND, '&&'))
+                continue
+            if self.char == '|' and self.peek() == '|':
+                self.advance(); self.advance()
+                tokens.append(Token(TK_OR, '||'))
+                continue
+            """
+            # unary increment/decrement
+            # Note: This is a bit tricky because we need to check for
+            # the next character after the current one
+            # to determine if it's a unary operator or not.
+            # For example, "++x" should be treated as a unary increment,
+            # while "x++" should be treated as a binary addition.
+            # This is a simplified version and may need to be adjusted
+            # based on the actual grammar of the language.
+            
+            if self.char == '++' and self.peek() == '+':    
+                self.advance(); self.advance()
+                tokens.append(Token(TK_UNARY_INC, '++'))
+                continue
+            if self.char == '--' and self.peek() == '-':
+                self.advance(); self.advance()
+                tokens.append(Token(TK_UNARY_DEC, '--'))
+                continue    
+            
 
             if self.char in DIGITS or (
                 self.char == '.' and self.peek() is not None and self.peek() in DIGITS
@@ -141,4 +204,3 @@ class Lexer:
 
         tokens.append(Token(TK_DONE))
         return tokens
-

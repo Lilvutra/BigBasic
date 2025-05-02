@@ -24,6 +24,21 @@ TK_DIV          = 'DIV'        # /
 TK_MOD          = 'MOD'        # %
 TK_DOT          = 'DOT'        # .
 
+# unary operators
+
+TK_UNARY_NOT    = 'UNARY_NOT' # !
+TK_UNARY_INC    = 'UNARY_INC' # ++
+TK_UNARY_DEC    = 'UNARY_DEC' # --
+
+#logical operators and and or, we have reserved words for them so we can ignore them
+#TK_AND         = 'AND'        # and
+#TK_OR          = 'OR'         # or
+
+TK_ASSIGN_ADD   = 'ASSIGN_ADD' # +=
+TK_ASSIGN_SUB   = 'ASSIGN_SUB' # -=
+#TK_ASSIGN_MUL   = 'ASSIGN_MUL' # *=
+#TK_ASSIGN_DIV   = 'ASSIGN_DIV' # /=
+
 
 #Add keywords "true", "false"
 RESERVED_WORDS = [

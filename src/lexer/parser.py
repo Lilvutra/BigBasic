@@ -235,6 +235,7 @@ class Parser:
             left = BinaryOpNode(left, op, right)
         return left
 
+    #not operator
     def parse_not(self):
         if self.check(TK_RESERVED) and self.current_token.value == 'not':
             op = self.current_token.value

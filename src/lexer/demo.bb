@@ -11,6 +11,7 @@ thing Person
   arg pos
 end
 
+
 pos1   = new Position [10,20]
 person = new Person ["tnqn",pos1]
 print person.pos.x    ^^ 10
@@ -58,3 +59,15 @@ end
 y = 1 / 0             ^^ no error yet
 print arr[3]         ^^ forces only arr[3], prints 3
 print y              ^^ now forces y → runtime error: Divide by zero
+
+
+^^ Unary operators test, currently not passed
+
+a = 5
+b = -a          ^^ Unary minus
+c = +a          ^^ Unary plus (no-op)
+d = not false   ^^ Logical NOT
+
+print "Unary minus: ", b        ^^ -5
+print "Unary plus: ", c         ^^ 5
+print "Logical NOT: ", d        ^^ true
