@@ -119,6 +119,7 @@ class Lexer:
                 self.advance(); self.advance()
                 tokens.append(Token(TK_NEQ, '!='))
                 continue
+            
             #unary operators
             if self.char == '!':
                 self.advance()

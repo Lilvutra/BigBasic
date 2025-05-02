@@ -48,7 +48,6 @@ RESERVED_WORDS = [
 ]
 
 
-
 class Token:
     def __init__(self, type, value=None, begin=None, finish=None):
         # type of the token (TK_NUMERIC, TK_ADD...)

@@ -185,6 +185,7 @@ class Parser:
 
     def parse(self):
         statements = []
+        print(f"current_token: {self.current_token}")
         while self.current_token and self.current_token.type != TK_DONE:
             if self.check(TK_LINEBREAK):
                 self.advance()
@@ -214,9 +215,20 @@ class Parser:
         value = self.parse_array_expression() if self.check(TK_L_BRACKET) else self.parse_expression()
         return AssignmentNode(name, value)
 
-    def parse_expression(self):
+    # need to be modified to handle unary operators
+    """ def parse_expression(self):
         return self.parse_or()
-
+    """
+    def parse_expression(self):
+        #handle unary operators
+        left = self.parse_unary()
+        while self.check(TK_RESERVED) and self.current_token.value == 'or':
+            op = self.current_token.value
+            self.advance()
+            right = self.parse_unary()
+            left = BinaryOpNode(left, op, right)
+        return left
+    
     def parse_or(self):
         left = self.parse_and()
         while self.check(TK_RESERVED) and self.current_token.value == 'or':
@@ -225,7 +237,8 @@ class Parser:
             right = self.parse_and()
             left = BinaryOpNode(left, op, right)
         return left
-
+    
+    """
     def parse_and(self):
         left = self.parse_not()
         while self.check(TK_RESERVED) and self.current_token.value == 'and':
@@ -234,15 +247,79 @@ class Parser:
             right = self.parse_not()
             left = BinaryOpNode(left, op, right)
         return left
-
+    """
     #not operator
-    def parse_not(self):
+    #we replace parser_not with parser_unary that handles nested unary operations, -(-5)
+    """ def parse_not(self):
         if self.check(TK_RESERVED) and self.current_token.value == 'not':
             op = self.current_token.value
             self.advance()
             expr = self.parse_not()
             return UnaryOpNode(op, expr)
+        return self.parse_comparison() """
+        
+    def parse_and(self):
+        left = self.parse_unary()
+        while self.check(TK_RESERVED) and self.current_token.value == 'and':
+            op = self.current_token.value
+            self.advance()
+            right = self.parse_unary()
+            left = BinaryOpNode(left, op, right)
+        return left
+    
+    """ def parse_unary(self):
+        if self.check(TK_SUB):
+            op = self.current_token.value
+            self.advance()
+            expr = self.parse_unary()
+            return UnaryOpNode(op, expr)
+        elif self.check(TK_RESERVED) and self.current_token.value == 'not':
+            op = self.current_token.value
+            self.advance()
+            expr = self.parse_unary()
+            return UnaryOpNode(op, expr)
         return self.parse_comparison()
+ """
+    def parse_unary(self):
+        # Check for negation operator ('-')
+        print(f"Parsing unary operator: {self.current_token}")
+        if self.check(TK_SUB):
+            op = self.current_token.value  # '-'
+            self.advance()
+            expr = self.parse_unary()  # recursively parse unary
+            return UnaryOpNode(op, expr)
+        
+        # Check for logical negation operator ('not')
+        elif self.check(TK_RESERVED) and self.current_token.value == 'not':
+            op = self.current_token.value  # 'not'
+            self.advance()
+            expr = self.parse_unary()  # recursively parse unary
+            return UnaryOpNode(op, expr)
+
+        # Handle parentheses (e.g., (-b) or (-(-b)))
+        elif self.check(TK_L_PAREN):
+            self.advance()  # consume '('
+            expr = self.parse_expression()  # parse the expression inside the parentheses
+            if not self.check(TK_R_PAREN):
+                raise SyntaxError("Expected closing parenthesis ')'")
+            self.advance()  # consume ')'
+            return expr  # return the parsed expression inside the parentheses
+
+        # Handle identifiers (e.g., 'b')
+        elif self.check(TK_NAME):
+            print(f"Parsing identifier: {self.current_token}")
+            name = self.current_token.value
+            self.advance()
+            return IdentifierNode(name)
+        
+        # Handle numbers (e.g., '5')
+        elif self.check(TK_INT) or self.check(TK_FLOAT):
+            value = self.current_token.value
+            self.advance()
+            return NumberNode(value)
+
+        # Fallback for any unsupported unary expressions
+        raise SyntaxError("Unexpected token: {}".format(self.current_token))
 
     def parse_comparison(self):
         left = self.parse_add_sub()
@@ -373,7 +450,7 @@ class Parser:
         return BlockNode(statements)
     
     def parse_primary(self):
-        
+       
         # new TypeName [args]
         if self.check(TK_RESERVED) and self.current_token.value == 'new':
             self.advance()  # consume 'new'
@@ -488,7 +565,7 @@ class Parser:
 
         # wildcard _
         if self.check(TK_NAME) and self.current_token.value == '_':
-            self.advance()
+            self.advance()  
             return PatternWildcard()
 
         # variable binding

@@ -11,7 +11,8 @@ from token import (
     TK_SEP, TK_LINEBREAK, TK_DONE, TK_UNARY_INC, TK_UNARY_DEC,
     TK_ASSIGN_ADD, TK_ASSIGN_SUB,
     TK_BOOL, TK_EQEQ, TK_NEQ, TK_MUL, TK_DIV,
-    TK_MOD, TK_DOT, TK_UNARY_NOT,
+    TK_MOD, TK_DOT, TK_UNARY_NOT, TK_ASSIGN_ADD, 
+    TK_ASSIGN_SUB, TK_UNARY_NOT, TK_UNARY_INC, TK_UNARY_DEC,
     RESERVED_WORDS
 )
 
@@ -19,10 +20,12 @@ def main():
     #lexer = Lexer("main", "arr[1]")
     #lexer = Lexer("main", "++x" )
     #lexer = Lexer("main", "x++1" )
-    lexer = Lexer("main", "x and y" )
+    #lexer = Lexer("main", "x and y" )
     #lexer = Lexer("main", "x+=1" )
     #lexer = Lexer("main", "x-=1" )
-    
+    #lexer = Lexer("main", " a and (b and c)")
+    lexer = Lexer("main", " -(-b) ")
+    # lexer not yet successfully implemented unary operators, -(-4) and -4 assign same NumberNode(value=4)
     # Note: x++1 supposed to return error since x++1 is not a valid expression
     
     tokens = lexer.tokenize()
@@ -30,8 +33,8 @@ def main():
         print(token)
 
     parser = Parser(tokens)
-    ast = parser.parse_and() #rn, we cant have ast yet after parsing
-    print(ast)
+    ast = parser.parse() #rn, we cant have ast yet after parsing
+    print(f"ast: {ast}")
     #interpreter = Interpreter()
     #interpreter.eval_program(ast)
 
