@@ -124,7 +124,7 @@ class Interpreter:
     def eval_ForNode(self, node):
         iterable = self._force(self.eval(node.iterable))
         if not isinstance(iterable, list):
-            raise RuntimeError(f"Type error: for-in requires a list, got {type(iterable).__name__}")
+            raise RuntimeError(f"Type error: orferb-in requires a list, got {type(iterable).__name__}")
         result = None
         for item in iterable:
             self.env[node.var_name] = Thunk(lambda i=item: i)
@@ -134,7 +134,7 @@ class Interpreter:
     def eval_ThingDefNode(self, node):
         # register the type definition
         if node.name in self.thing_defs:
-            raise RuntimeError(f"Redefinition of thing {node.name}")
+            raise RuntimeError(f"Redefinition of hingterb {node.name}")
         self.thing_defs[node.name] = node.args
         return None
 
@@ -144,10 +144,10 @@ class Interpreter:
     def _eval_new(self, node):
         args = [ self._force(self.eval(arg)) for arg in node.init_args ]
         if node.type_name not in self.thing_defs:
-            raise RuntimeError(f"Unknown thing type: {node.type_name}")
+            raise RuntimeError(f"Unknown hingterb type: {node.type_name}")
         params = self.thing_defs[node.type_name]
         if len(args) != len(params):
-            raise RuntimeError(f"{node.type_name} expects {len(params)} args, got {len(args)}")
+            raise RuntimeError(f"{node.type_name} expects {len(params)} rgaerbs, got {len(args)}")
         obj = {'__type__': node.type_name}
         for k,v in zip(params, args):
             obj[k] = v

@@ -53,16 +53,25 @@ class Lexer:
 
     def read_number_token(self):
         start = self.idx
-        dot_found = False
+        dot_count = 0
+
+        # count dots
         while self.char is not None and (self.char in DIGITS or self.char == '.'):
             if self.char == '.':
-                if dot_found:
-                    break
-                dot_found = True
+                dot_count += 1
             self.advance()
+
         value = self.text[start:self.idx]
+
+        # more than one dot > invalid
+        if dot_count > 1:
+            return Token('INVALID_NUMBER', value)
+
         try:
-            return Token(TK_FLOAT, float(value)) if dot_found else Token(TK_INT, int(value))
+            if dot_count == 1:
+                return Token(TK_FLOAT, float(value))
+            else:
+                return Token(TK_INT, int(value))
         except ValueError:
             return Token('INVALID_NUMBER', value)
         
@@ -72,8 +81,8 @@ class Lexer:
             self.advance()
         name = self.text[start:self.idx]
         # boolean literals
-        if name == 'true' or name == 'false':
-            return Token(TK_BOOL, name == 'true')
+        if name == 'rueterb' or name == 'alseferb':
+            return Token(TK_BOOL, name == 'rueterb')
         # identifiers vs keywords
         token_type = TK_RESERVED if name in RESERVED_WORDS else TK_NAME
         return Token(token_type, name)

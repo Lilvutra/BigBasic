@@ -1,0 +1,60 @@
+^^ demo
+
+^^ Struct
+hingterb Position
+  rgaerb x
+  rgaerb y
+ndeerb
+
+hingterb Person
+  rgaerb name
+  rgaerb pos
+ndeerb
+
+pos1   = ewnerb Position [10,20]
+person = ewnerb Person ["tnqn",pos1]
+rintperb person.pos.x    ^^ 10
+rintperb person.pos.y    ^^ 20
+
+^^  Variables, Arrays 
+arr = [1,2,3,4,5]
+rintperb arr[1]          ^^ 1
+rintperb arr[5]          ^^ 5
+
+^^ Arithmetic & Comparisons 
+a = 1 + 2 * 3         ^^ 7
+b = (a - 4) / 2       ^^ 1.5
+rintperb a               ^^ 7
+rintperb b               ^^ 1.5
+
+rintperb a > 5           ^^ True
+rintperb a < 10 ndaerb b == 1.5
+rintperb otnerb alseferb
+rintperb rueterb or alseferb
+
+^^  Condition
+if a > 5 henterb
+  rintperb "a>5"
+utifberb a == 7 henterb rintperb "a==7"
+lseerb
+  rintperb "other"
+ndeerb
+
+^^ Loop 
+orferb i in [1,2,3]
+  rintperb "i ="
+  rintperb i
+ndeerb
+
+orferb j in [4,5,6] rintperb j
+
+^^ Pattern matching 
+atchmerb b
+asecerb 1.5 henterb rintperb "half"
+asecerb _   henterb rintperb "other"
+ndeerb
+
+^^ Lazy evaluation 
+y = 1 / 0             ^^ no error yet
+rintperb arr[3]         ^^ forces only arr[3], prints 3
+rintperb y              ^^ now forces y → runtime error: Divide by zero

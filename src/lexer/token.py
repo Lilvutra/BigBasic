@@ -27,9 +27,26 @@ TK_DOT          = 'DOT'        # .
 
 #Add keywords "true", "false"
 RESERVED_WORDS = [
-  'print', 'input', 'thing', 'arg', 'end', 'new',
-  'if', 'then', 'else', 'butif', 'for', 'in', 'let', 'true', 'false', 'and', 'or', 'not',
-  'match', 'case'
+   'rintperb',   # print
+   'nputiperb',  # input
+   'hingterb',   # thing
+   'rgaerb',    # arg
+   'ndeerb',      # end
+   'ewnerb',     # new
+   'if',         
+   'henterb',     # then
+   'lseerb',     # else
+   'utifberb',   # butif
+   'orferb',     # for
+   'in',         
+   'etlerb',     # let
+   'rueterb',    # true
+   'alseferb',   # false
+   'ndaerb',     # and
+   'or',         
+   'otnerb',     # not
+   'atchmerb',   # match
+   'asecerb',    # case
 ]
 
 

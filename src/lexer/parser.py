@@ -189,15 +189,15 @@ class Parser:
             if self.check(TK_LINEBREAK):
                 self.advance()
                 continue
-            if self.check(TK_RESERVED) and self.current_token.value == 'thing':
+            if self.check(TK_RESERVED) and self.current_token.value == 'hingterb':
                 stmt = self.parse_thing_def()
-            elif self.check(TK_RESERVED) and self.current_token.value == 'print':
+            elif self.check(TK_RESERVED) and self.current_token.value == 'rintperb':
                 stmt = self.parse_print()
-            elif self.check(TK_RESERVED) and self.current_token.value in ('if', 'butif'):
+            elif self.check(TK_RESERVED) and self.current_token.value in ('if', 'utifberb'):
                 stmt = self.parse_if()
-            elif self.check(TK_RESERVED) and self.current_token.value == 'match':
+            elif self.check(TK_RESERVED) and self.current_token.value == 'atchmerb':
                 stmt = self.parse_match()
-            elif self.check(TK_RESERVED) and self.current_token.value == 'for':
+            elif self.check(TK_RESERVED) and self.current_token.value == 'orferb':
                 stmt = self.parse_for()
             elif self.check(TK_NAME) and self.peek().type == TK_ASSIGN:
                 stmt = self.parse_variable()
@@ -228,16 +228,16 @@ class Parser:
 
     def parse_and(self):
         left = self.parse_not()
-        while self.check(TK_RESERVED) and self.current_token.value == 'and':
-            op = self.current_token.value
+        while self.check(TK_RESERVED) and self.current_token.value == 'ndaerb':
+            op = 'and'
             self.advance()
             right = self.parse_not()
             left = BinaryOpNode(left, op, right)
         return left
 
     def parse_not(self):
-        if self.check(TK_RESERVED) and self.current_token.value == 'not':
-            op = self.current_token.value
+        if self.check(TK_RESERVED) and self.current_token.value == 'otnerb':
+            op = 'not'
             self.advance()
             expr = self.parse_not()
             return UnaryOpNode(op, expr)
@@ -306,8 +306,8 @@ class Parser:
     def _parse_if_branch(self):
         condition = self.parse_expression()
 
-        if not (self.check(TK_RESERVED) and self.current_token.value == 'then'):
-            raise Exception(f"Expected 'then', got {self.current_token}")
+        if not (self.check(TK_RESERVED) and self.current_token.value == 'henterb'):
+            raise Exception(f"Expected 'henterb', got {self.current_token}")
         self.advance()
 
         if self.check(TK_LINEBREAK):
@@ -318,13 +318,13 @@ class Parser:
             self.advance()
 
         else_branch = None
-        if self.check(TK_RESERVED) and self.current_token.value in ('butif', 'else'):
+        if self.check(TK_RESERVED) and self.current_token.value in ('utifberb', 'lseerb'):
             kind = self.current_token.value
             self.advance()
             # if block, skip blank lines
             while self.check(TK_LINEBREAK):
                 self.advance()
-            if kind == 'butif':
+            if kind == 'utifberb':
                 else_branch = self._parse_if_branch()  # recursive chain
             else:
                 else_branch = self.parse_block()
@@ -332,7 +332,7 @@ class Parser:
         while self.check(TK_LINEBREAK):
             self.advance()
         # now consume 'end' if present
-        if self.check(TK_RESERVED) and self.current_token.value == 'end':
+        if self.check(TK_RESERVED) and self.current_token.value == 'ndeerb':
             self.advance()
         # skip any blank lines after 'end'
         while self.check(TK_LINEBREAK):
@@ -343,15 +343,15 @@ class Parser:
     def parse_statement(self):
         while self.check(TK_LINEBREAK):
             self.advance()
-        if self.check(TK_RESERVED) and self.current_token.value == 'thing':
+        if self.check(TK_RESERVED) and self.current_token.value == 'hingterb':
             return self.parse_thing_def()
-        if self.check(TK_RESERVED) and self.current_token.value == 'print':
+        if self.check(TK_RESERVED) and self.current_token.value == 'rintperb':
             return self.parse_print()
-        if self.check(TK_RESERVED) and self.current_token.value in ('if', 'butif'):
+        if self.check(TK_RESERVED) and self.current_token.value in ('if', 'utifberb'):
             return self.parse_if()
-        if self.check(TK_RESERVED) and self.current_token.value == 'match':
+        if self.check(TK_RESERVED) and self.current_token.value == 'atchmerb':
             return self.parse_match()
-        if self.check(TK_RESERVED) and self.current_token.value == 'for':
+        if self.check(TK_RESERVED) and self.current_token.value == 'orferb':
             return self.parse_for()
         if self.check(TK_NAME) and self.peek().type == TK_ASSIGN:
             return self.parse_variable()
@@ -364,7 +364,7 @@ class Parser:
         while self.check(TK_LINEBREAK):
             self.advance()
         while (self.current_token and
-               not (self.check(TK_RESERVED) and self.current_token.value in ('butif', 'else', 'end')) and
+               not (self.check(TK_RESERVED) and self.current_token.value in ('utifberb', 'lseerb', 'ndeerb')) and
                self.current_token.type != TK_DONE):
             statements.append(self.parse_statement())
             while self.check(TK_LINEBREAK):
@@ -374,7 +374,7 @@ class Parser:
     def parse_primary(self):
         
         # new TypeName [args]
-        if self.check(TK_RESERVED) and self.current_token.value == 'new':
+        if self.check(TK_RESERVED) and self.current_token.value == 'ewnerb':
             self.advance()  # consume 'new'
             type_name = self.expect(TK_NAME).value
             # parse the array literal and pull out its elements
@@ -446,7 +446,7 @@ class Parser:
         if self.check(TK_LINEBREAK):
             body = self.parse_block()
             # consume optional 'end' after the block
-            if self.check(TK_RESERVED) and self.current_token.value == 'end':
+            if self.check(TK_RESERVED) and self.current_token.value == 'ndeerb':
                 self.advance()
         else:
             body = self.parse_statement()
@@ -459,14 +459,14 @@ class Parser:
         while self.check(TK_LINEBREAK):
             self.advance()
         args = []
-        while self.check(TK_RESERVED) and self.current_token.value == 'arg':
+        while self.check(TK_RESERVED) and self.current_token.value == 'rgaerb':
             self.advance()               # skip 'arg'
             arg_name = self.expect(TK_NAME).value
             args.append(arg_name)
             while self.check(TK_LINEBREAK):
                 self.advance()
-        if not (self.check(TK_RESERVED) and self.current_token.value == 'end'):
-            raise Exception(f"Expected 'end', got {self.current_token}")
+        if not (self.check(TK_RESERVED) and self.current_token.value == 'ndeerb'):
+            raise Exception(f"Expected 'ndeerb', got {self.current_token}")
         self.advance()  # consume 'end'
 
         return ThingDefNode(name, args)
@@ -504,11 +504,11 @@ class Parser:
         while self.check(TK_LINEBREAK):
             self.advance()
         cases = []
-        while self.check(TK_RESERVED) and self.current_token.value == 'case':
+        while self.check(TK_RESERVED) and self.current_token.value == 'asecerb':
             self.advance()                 # skip 'case'
             pattern = self.parse_pattern()
-            if not (self.check(TK_RESERVED) and self.current_token.value == 'then'):
-                raise Exception(f"Expected 'then' in case, got {self.current_token}")
+            if not (self.check(TK_RESERVED) and self.current_token.value == 'henterb'):
+                raise Exception(f"Expected 'henterb' in case, got {self.current_token}")
             self.advance()
 
             while self.check(TK_LINEBREAK):
@@ -524,7 +524,7 @@ class Parser:
                 self.advance()
 
         else_branch = None
-        if self.check(TK_RESERVED) and self.current_token.value == 'else':
+        if self.check(TK_RESERVED) and self.current_token.value == 'lseerb':
             self.advance()
             while self.check(TK_LINEBREAK):
                 self.advance()
@@ -534,7 +534,7 @@ class Parser:
             else:
                 else_branch = self.parse_statement()
 
-        if self.check(TK_RESERVED) and self.current_token.value == 'end':
+        if self.check(TK_RESERVED) and self.current_token.value == 'ndeerb':
             self.advance()
 
         return MatchNode(expr, cases, else_branch)

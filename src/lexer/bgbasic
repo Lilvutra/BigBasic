@@ -27,7 +27,7 @@ def run_file(path):
         sys.exit(1)
 
 def repl():
-    print("BigBasic REPL v0.1  (Ctrl-D to exit)\n")
+    print("FERB Latin REPL v0.1  (Ctrl-D to exit)\n")
     interpreter = Interpreter()
     buffer = ""
     while True:
@@ -69,11 +69,13 @@ def repl():
 
 def main():
     p = argparse.ArgumentParser(prog="bigbasic",
-        description="BigBasic: run .bb scripts or drop into the REPL")
-    p.add_argument("file", nargs="?", help="Path to a .bb source file")
+        description="BigBasic: run .erb scripts or drop into the REPL")
+    p.add_argument("file", nargs="?", help="Path to a .erb source file")
     args = p.parse_args()
 
     if args.file:
+        if not args.file.endswith(".erb"):
+            print(f"Warning: expected a .erb file, but got '{args.file}'", file=sys.stderr)
         run_file(args.file)
     else:
         repl()
