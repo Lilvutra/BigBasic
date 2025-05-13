@@ -275,16 +275,26 @@ class Parser:
     def parse_array_expression(self):
         self.expect(TK_L_BRACKET)
         elements = []
+
         while not self.check(TK_R_BRACKET):
+            while self.check(TK_LINEBREAK):
+                self.advance()
+
             elements.append(self.parse_expression())
+
+            while self.check(TK_LINEBREAK):
+                self.advance()  
+
             if self.check(TK_SEP):
                 self.advance()
             elif self.check(TK_R_BRACKET):
                 break
             else:
                 raise Exception(f"Expected ',' or ']', got {self.current_token}")
+
         self.expect(TK_R_BRACKET)
         return ArrayNode(elements)
+
 
     def parse_indexing(self):
         name = self.expect(TK_NAME).value
@@ -372,43 +382,39 @@ class Parser:
         return BlockNode(statements)
     
     def parse_primary(self):
-        
+        node = None
+
         # new TypeName [args]
         if self.check(TK_RESERVED) and self.current_token.value == 'ewnerb':
-            self.advance()  # consume 'new'
+            self.advance()
             type_name = self.expect(TK_NAME).value
-            # parse the array literal and pull out its elements
             init_args = self.parse_array_expression().elements
             node = NewNode(type_name, init_args)
-            return self._maybe_parse_attr(node)
-        
-        # grouping: ( expr )
-        if self.check(TK_L_PAREN):
+
+        elif self.check(TK_L_PAREN):
             self.advance()
-            expr = self.parse_expression()
+            node = self.parse_expression()
             self.expect(TK_R_PAREN)
-            return expr
 
-        # array literal
-        if self.check(TK_L_BRACKET):
-            return self.parse_array_expression()
+        elif self.check(TK_L_BRACKET):
+            node = self.parse_array_expression()
 
-        # indexing: name[expr]
-        if self.check(TK_NAME) and self.peek().type == TK_L_BRACKET:
-            return self.parse_indexing()
+        elif self.check(TK_NAME) and self.peek() and self.peek().type == TK_L_BRACKET:
+            node = self.parse_indexing()
 
-        # variable reference
-        if self.check(TK_NAME):
+        elif self.check(TK_NAME):
             name = self.current_token.value
             self.advance()
-            return self._maybe_parse_attr(IdentifierNode(name))
+            node = IdentifierNode(name)
 
-        # literals
-        if self.check(TK_INT) or self.check(TK_FLOAT) \
-           or self.check(TK_STRING) or self.check(TK_BOOL):
-            return self.parse_literal()
+        elif self.check(TK_INT) or self.check(TK_FLOAT) or self.check(TK_STRING) or self.check(TK_BOOL):
+            node = self.parse_literal()
 
-        raise Exception(f"Unexpected token in primary: {self.current_token}")
+        else:
+            raise Exception(f"Unexpected token in primary: {self.current_token}")
+
+        return self._maybe_parse_attr(node)
+
     
     def parse_add_sub(self):
         left = self.parse_mul_div()
@@ -504,6 +510,8 @@ class Parser:
         while self.check(TK_LINEBREAK):
             self.advance()
         cases = []
+        if not self.check(TK_RESERVED) or self.current_token.value != 'asecerb':
+            raise Exception("Expected at least one 'asecerb' case in 'atchmerb'")
         while self.check(TK_RESERVED) and self.current_token.value == 'asecerb':
             self.advance()                 # skip 'case'
             pattern = self.parse_pattern()
@@ -534,8 +542,10 @@ class Parser:
             else:
                 else_branch = self.parse_statement()
 
-        if self.check(TK_RESERVED) and self.current_token.value == 'ndeerb':
-            self.advance()
+        if not (self.check(TK_RESERVED) and self.current_token.value == 'ndeerb'):
+            raise Exception("Expected 'ndeerb' to close 'atchmerb' block")
+        self.advance()
+
 
         return MatchNode(expr, cases, else_branch)
 

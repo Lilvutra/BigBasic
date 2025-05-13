@@ -1,6 +1,7 @@
-^^ demo
+^^ DEMO: Ferb Latin
+^^ ---------------------------------------------
 
-^^ Struct
+^^ -- STRUCT DEFINITION & OBJECT INITIALIZATION
 hingterb Position
   rgaerb x
   rgaerb y
@@ -12,49 +13,154 @@ hingterb Person
 ndeerb
 
 pos1   = ewnerb Position [10,20]
-person = ewnerb Person ["tnqn",pos1]
-rintperb person.pos.x    ^^ 10
-rintperb person.pos.y    ^^ 20
+person = ewnerb Person ["tnqn", pos1]
+rintperb person.pos.x        ^^ 10
+rintperb person.pos.y        ^^ 20
 
-^^  Variables, Arrays 
-arr = [1,2,3,4,5]
-rintperb arr[1]          ^^ 1
-rintperb arr[5]          ^^ 5
+^^ -- ARRAYS & INDEXING
+arr = [99, 88, 77, 66, 55]
+rintperb arr[1]              ^^ 99
+rintperb arr[5]              ^^ 55
 
-^^ Arithmetic & Comparisons 
-a = 1 + 2 * 3         ^^ 7
-b = (a - 4) / 2       ^^ 1.5
-rintperb a               ^^ 7
-rintperb b               ^^ 1.5
+^^ -- NESTED ATTRIBUTES IN ARRAYS
+structs = [person, person]
+rintperb structs[2].pos.x    ^^ 10
 
-rintperb a > 5           ^^ True
-rintperb a < 10 ndaerb b == 1.5
-rintperb otnerb alseferb
-rintperb rueterb or alseferb
+^^ -- ARITHMETIC & BOOLEAN EXPRESSIONS
+a = 2 + 3 * 4                ^^ 14
+b = (a - 6) / 4              ^^ 2.0
+c = a > b                   ^^ True
+d = a < 100 ndaerb b == 2.0 ^^ True
+e = otnerb alseferb         ^^ True
+f = rueterb or alseferb     ^^ True
+g = rueterb ndaerb e           ^^ True
+rintperb g
 
-^^  Condition
-if a > 5 henterb
-  rintperb "a>5"
-utifberb a == 7 henterb rintperb "a==7"
+^^ -- LOGIC INSIDE CONDITIONALS
+if a > 10 henterb
+  rintperb "a bigger than 10"
+utifberb a == 14 henterb
+  rintperb "a equals 14"
 lseerb
-  rintperb "other"
+  rintperb "a not satisfy"
 ndeerb
 
-^^ Loop 
-orferb i in [1,2,3]
-  rintperb "i ="
-  rintperb i
+^^ -- INLINE FOR LOOP
+orferb i in [3,2,1] rintperb i
+
+^^ -- BLOCK FOR LOOP WITH ATTRIBUTES
+orferb p in structs
+  rintperb p.name
+  rintperb p.pos.y
 ndeerb
 
-orferb j in [4,5,6] rintperb j
-
-^^ Pattern matching 
-atchmerb b
-asecerb 1.5 henterb rintperb "half"
-asecerb _   henterb rintperb "other"
+^^ -- PATTERN MATCHING: LITERAL & WILDCARD
+atchmerb a
+asecerb 14 henterb rintperb "Matched exact"
+asecerb _  henterb rintperb "Fallback"
 ndeerb
 
-^^ Lazy evaluation 
-y = 1 / 0             ^^ no error yet
-rintperb arr[3]         ^^ forces only arr[3], prints 3
-rintperb y              ^^ now forces y → runtime error: Divide by zero
+^^ -- PATTERN MATCHING: VARIABLE BINDING
+atchmerb 42
+asecerb x henterb rintperb x
+ndeerb                       ^^ 42
+
+^^ -- NESTED MATCH IN IF
+val = 3
+if val > 0 henterb
+  atchmerb val
+  asecerb 1 henterb rintperb "one"
+  asecerb 2 henterb rintperb "two"
+  asecerb _ henterb rintperb "other value"
+  ndeerb
+lseerb
+  rintperb "val <= 0"
+ndeerb
+
+^^ -- OBJECTS IN ARRAYS + ATTR ACCESS + MATCH
+people = [
+  ewnerb Person ["A", ewnerb Position [1,2]],
+  ewnerb Person ["B", ewnerb Position [3,4]]
+]
+
+orferb p in people
+  rintperb p.name
+  rintperb p.pos.x
+ndeerb
+
+^^ ---------- UNARY LOGIC EDGE CASES ----------
+rintperb otnerb otnerb rueterb     ^^ True (double negation)
+rintperb otnerb (rueterb ndaerb alseferb)   ^^ True
+
+^^ ---------- INDEX OUT OF BOUNDS ----------
+^^ arr = [1, 2]
+^^ rintperb arr[0]       ^^ Error: index < 1
+^^ rintperb arr[3]       ^^ Error: index > length
+
+^^ ---------- TYPE MISMATCH ----------
+a = "hello"
+b = 123
+^^ rintperb a + b        ^^ Error: cannot add str + int
+^^ rintperb b ndaerb a      ^^ Error: cannot and int + str
+^^ rintperb a > b        ^^ Error: cannot compare str and int
+
+^^ ---------- ACCESSING NON-ATTRS ----------
+^^ x = 5
+^^ rintperb x.foo        ^^ Error: accessing attr on non-object
+
+^^ y = [1,2,3]
+^^ rintperb y.foo        ^^ Error: attr access on list
+
+^^ -- LAZY EVALUATION & ERROR ON FORCE
+^^ lazy = 1 / 0              ^^ no error yet
+^^ rintperb arr[3]           ^^ 77
+^^ rintperb lazy             ^^ triggers divide-by-zero
+
+^^ ---------- STRUCT REDEFINITION ----------
+hingterb Alpha
+  rgaerb x
+ndeerb
+
+^^ hingterb Alpha        ^^ Error: redefinition
+^^  rgaerb y
+^^ ndeerb
+
+^^ ---------- PATTERN MATCHING FAIL ----------
+^^ atchmerb 123
+^^ asecerb "123" henterb rintperb "should not match"
+^^ ndeerb                   ^^ Error: no pattern matched
+
+^^ ---------- LAZY EVAL TEST ----------
+lazy = 1 / 0       ^^ No error yet
+lazy2 = lazy       ^^ Still no error
+rintperb 100       ^^ Should succeed
+^^ rintperb lazy2     ^^ Now throws divide-by-zero
+
+^^ ---------- DOT ACCESS WITH INDEX ----------
+posArr = [ewnerb Position [1, 2], ewnerb Position [3, 4]]
+rintperb posArr[1].x         ^^ 1
+rintperb posArr[2].y         ^^ 4
+^^ rintperb posArr[3].x         ^^ Error: index out of range
+
+^^ ---------- MATCH VARIABLE SHADOWING ----------
+val = 10
+atchmerb val
+asecerb val henterb rintperb val
+ndeerb                 ^^ val inside case shadows outer val
+
+rintperb val           ^^ outer val should still be 10
+
+^^ ---------- MULTILINE ARRAY WITH COMMENTS ----------
+list = [
+  1,
+  2,
+  ^^ this is a comment
+  3
+]
+rintperb list[3]       ^^ 3
+
+^^ ---------- SHORT-CIRCUIT TRAP ----------
+rintperb rueterb or (1 / 0)         ^^ prints True
+rintperb alseferb ndaerb (1 / 0)       ^^ prints False
+rintperb 1 + 2                      ^^ prints 3
+

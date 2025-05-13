@@ -39,7 +39,6 @@ RESERVED_WORDS = [
    'utifberb',   # butif
    'orferb',     # for
    'in',         
-   'etlerb',     # let
    'rueterb',    # true
    'alseferb',   # false
    'ndaerb',     # and

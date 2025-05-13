@@ -6,6 +6,8 @@ import argparse
 from lexer import Lexer
 from parser import Parser
 from interpreter import Interpreter, RuntimeError as InterpreterError
+from token import TK_LINEBREAK, TK_DONE
+
 
 def run_file(path):
     try:
@@ -26,46 +28,75 @@ def run_file(path):
         print(f"Runtime error: {e}", file=sys.stderr)
         sys.exit(1)
 
+def is_incomplete_input_error(msg: str, buffer: str) -> bool:
+    return any(
+        phrase in msg for phrase in [
+            "Unexpected end of input",
+            "Expected 'ndeerb'",
+            "got EOF",
+            "unterminated block",
+            "Expected at least one 'asecerb'",
+        ]
+    ) or buffer.strip().startswith(("atchmerb", "if", "orferb"))
+
+
 def repl():
-    print("FERB Latin REPL v0.1  (Ctrl-D to exit)\n")
+    print("FERB Latin REPL v0.1  (Ctrl-D or :exit to quit)\n")
     interpreter = Interpreter()
     buffer = ""
+
     while True:
         try:
             prompt = ">>> " if not buffer else "... "
-            line = input(prompt)
+            line = input(prompt).rstrip()
         except EOFError:
-            print()  # newline on Ctrl-D
+            print("\nExiting.")
             break
 
-        # ignore empty lines when nothing buffered
-        if not line.strip() and not buffer:
+        if line.strip() == ":exit":
+            break
+        if line.strip() == ":clear":
+            buffer = ""
+            continue
+        if line.strip() == ":tokens":
+            if not buffer:
+                print("(nothing to tokenize)")
+                continue
+            lexer = Lexer("<repl>", buffer)
+            tokens = lexer.tokenize()
+            print(tokens)
+            continue
+
+        if not line and not buffer:
             continue
 
         buffer += line + "\n"
+
         try:
-            # try to parse what we have so far
-            lexer = Lexer("<stdin>", buffer)
+            lexer = Lexer("<repl>", buffer)
             tokens = lexer.tokenize()
+
+            # Wait if input is just newlines
+            if all(t.type in {TK_LINEBREAK, TK_DONE} for t in tokens):
+                continue
+
             parser = Parser(tokens)
             ast = parser.parse()
-            # if parse succeeded, execute and clear buffer
+
             interpreter.interpret(ast)
-            buffer = ""
+            buffer = ""  # clear buffer on success
+
         except InterpreterError as e:
             print(f"Runtime error: {e}")
-            buffer = ""
+            buffer = ""  # clear on runtime errors
         except Exception as e:
-            # likely incomplete input, wait for more
             msg = str(e)
-            if ("Unexpected end of input" in msg
-                or "Unexpected token" in msg
-                or "got EOF" in msg  # treat Expected 'end', got EOF as incomplete
-            ):
-                continue
-            # real parse error
-            print(f"Error: {e}")
-            buffer = ""
+            if is_incomplete_input_error(msg, buffer):
+                continue  # keep buffering
+            print(f"Parse error: {e}")
+            buffer = ""  # clear on real parse errors
+
+
 
 def main():
     p = argparse.ArgumentParser(prog="bigbasic",

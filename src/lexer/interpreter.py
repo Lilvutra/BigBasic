@@ -179,9 +179,34 @@ class Interpreter:
         return Thunk(lambda: self._eval_binary(node))
 
     def _eval_binary(self, node):
+        op = node.op
+
+        # --- SHORT-CIRCUIT LOGIC ---
+        if op == 'and':
+            left = self._force(self.eval(node.left))
+            if not isinstance(left, bool):
+                raise RuntimeError(f"Type error: 'and' requires booleans, got {type(left).__name__}")
+            if not left:
+                return False  # ⛔ Skip right
+            right = self._force(self.eval(node.right))
+            if not isinstance(right, bool):
+                raise RuntimeError(f"Type error: 'and' requires booleans, got {type(right).__name__}")
+            return right
+
+        if op == 'or':
+            left = self._force(self.eval(node.left))
+            if not isinstance(left, bool):
+                raise RuntimeError(f"Type error: 'or' requires booleans, got {type(left).__name__}")
+            if left:
+                return True  # ⛔ Skip right
+            right = self._force(self.eval(node.right))
+            if not isinstance(right, bool):
+                raise RuntimeError(f"Type error: 'or' requires booleans, got {type(right).__name__}")
+            return right
+
+        # --- ARITHMETIC (EAGER) ---
         left = self._force(self.eval(node.left))
         right = self._force(self.eval(node.right))
-        op = node.op
 
         # arithmetic
         if op in ('+', 'PLUS'):
@@ -209,16 +234,6 @@ class Interpreter:
                 raise RuntimeError("Divide by zero")
             return left % right
 
-        # boolean
-        if op == 'and':
-            if not isinstance(left, bool) or not isinstance(right, bool):
-                raise RuntimeError(f"Type error: and requires booleans, got {type(left).__name__}, {type(right).__name__}")
-            return left and right
-        if op == 'or':
-            if not isinstance(left, bool) or not isinstance(right, bool):
-                raise RuntimeError(f"Type error: or requires booleans, got {type(left).__name__}, {type(right).__name__}")
-            return left or right
-
         raise RuntimeError(f"Unknown binary operator: {op}")
 
     def eval_ComparisonNode(self, node):
@@ -228,15 +243,22 @@ class Interpreter:
         left = self._force(self.eval(node.left))
         right = self._force(self.eval(node.right))
         op = node.op
-        if op in ('<','LT'):
+
+        if op in ('<', 'LT'):
+            if type(left) != type(right):
+                raise RuntimeError(f"Cannot compare {type(left).__name__} and {type(right).__name__}")
             return left < right
-        if op in ('>','GT'):
+        if op in ('>', 'GT'):
+            if type(left) != type(right):
+                raise RuntimeError(f"Cannot compare {type(left).__name__} and {type(right).__name__}")
             return left > right
-        if op in ('==','EQEQ'):
+        if op in ('==', 'EQEQ'):
             return left == right
-        if op in ('!=','NEQ'):
+        if op in ('!=', 'NEQ'):
             return left != right
+
         raise RuntimeError(f"Unknown comparison operator: {op}")
+
 
     def _match_pattern(self, pattern, value):
         if isinstance(pattern, PatternWildcard):
