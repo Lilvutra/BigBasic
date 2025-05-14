@@ -169,10 +169,22 @@ class Interpreter:
 
     def _eval_unary(self, node):
         val = self._force(self.eval(node.expr))
+
         if node.op == 'not':
             if not isinstance(val, bool):
                 raise RuntimeError(f"Type error: 'not' requires boolean, got {type(val).__name__}")
             return not val
+
+        if node.op in ('minus', '-'):
+            if not isinstance(val, (int, float)):
+                raise RuntimeError(f"Type error: unary '-' requires number, got {type(val).__name__}")
+            return -val
+
+        if node.op in ('plus', '+'):
+            if not isinstance(val, (int, float)):
+                raise RuntimeError(f"Type error: unary '+' requires number, got {type(val).__name__}")
+            return +val
+
         raise RuntimeError(f"Unknown unary operator: {node.op}")
 
     def eval_BinaryOpNode(self, node):

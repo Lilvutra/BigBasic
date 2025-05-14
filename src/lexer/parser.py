@@ -342,11 +342,14 @@ class Parser:
         while self.check(TK_LINEBREAK):
             self.advance()
         # now consume 'end' if present
-        if self.check(TK_RESERVED) and self.current_token.value == 'ndeerb':
-            self.advance()
-        # skip any blank lines after 'end'
+        if not (self.check(TK_RESERVED) and self.current_token.value == 'ndeerb'):
+            raise Exception(f"Expected 'ndeerb' to close 'if' block, got {self.current_token}")
+        self.advance()
+
+        # Skip blank lines after
         while self.check(TK_LINEBREAK):
             self.advance()
+
 
         return IfNode(condition, then_branch, else_branch)
 
@@ -383,7 +386,12 @@ class Parser:
     
     def parse_primary(self):
         node = None
-
+        # Handle unary minus or plus
+        if self.check(TK_SUB) or self.check(TK_ADD):
+            op = 'MINUS' if self.check(TK_SUB) else 'PLUS'
+            self.advance()
+            expr = self.parse_primary()
+            return UnaryOpNode(op.lower(), expr)  # 'minus' or 'plus'
         # new TypeName [args]
         if self.check(TK_RESERVED) and self.current_token.value == 'ewnerb':
             self.advance()
@@ -452,8 +460,13 @@ class Parser:
         if self.check(TK_LINEBREAK):
             body = self.parse_block()
             # consume optional 'end' after the block
-            if self.check(TK_RESERVED) and self.current_token.value == 'ndeerb':
+            if not (self.check(TK_RESERVED) and self.current_token.value == 'ndeerb'):
+                raise Exception(f"Expected 'ndeerb' to close 'orferb' block, got {self.current_token}")
+            self.advance()
+
+            while self.check(TK_LINEBREAK):
                 self.advance()
+
         else:
             body = self.parse_statement()
 

@@ -28,6 +28,11 @@ def run_file(path):
         print(f"Runtime error: {e}", file=sys.stderr)
         sys.exit(1)
 
+def has_unclosed_block(buffer: str) -> bool:
+    opens = buffer.count("atchmerb") + buffer.count("if") + buffer.count("orferb")
+    closes = buffer.count("ndeerb")
+    return closes < opens
+
 def is_incomplete_input_error(msg: str, buffer: str) -> bool:
     return any(
         phrase in msg for phrase in [
@@ -37,7 +42,7 @@ def is_incomplete_input_error(msg: str, buffer: str) -> bool:
             "unterminated block",
             "Expected at least one 'asecerb'",
         ]
-    ) or buffer.strip().startswith(("atchmerb", "if", "orferb"))
+    ) or buffer.strip().startswith(("atchmerb", "if", "orferb")) or has_unclosed_block(buffer)
 
 
 def repl():
@@ -76,7 +81,6 @@ def repl():
             lexer = Lexer("<repl>", buffer)
             tokens = lexer.tokenize()
 
-            # Wait if input is just newlines
             if all(t.type in {TK_LINEBREAK, TK_DONE} for t in tokens):
                 continue
 
@@ -84,18 +88,17 @@ def repl():
             ast = parser.parse()
 
             interpreter.interpret(ast)
-            buffer = ""  # clear buffer on success
+            buffer = ""  # clear on success
 
         except InterpreterError as e:
             print(f"Runtime error: {e}")
-            buffer = ""  # clear on runtime errors
+            buffer = ""
         except Exception as e:
             msg = str(e)
             if is_incomplete_input_error(msg, buffer):
                 continue  # keep buffering
             print(f"Parse error: {e}")
-            buffer = ""  # clear on real parse errors
-
+            buffer = ""
 
 
 def main():
