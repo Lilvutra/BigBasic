@@ -313,17 +313,20 @@ class Parser:
         self.advance()
         return self._parse_if_branch()
 
-    def _parse_if_branch(self):
+    def _parse_if_branch(self, require_end=True):
         condition = self.parse_expression()
 
         if not (self.check(TK_RESERVED) and self.current_token.value == 'henterb'):
             raise Exception(f"Expected 'henterb', got {self.current_token}")
         self.advance()
 
-        if self.check(TK_LINEBREAK):
-            then_branch = self.parse_block()    
-        else:
-            then_branch = self.parse_statement()
+        # ❗ enforce block-style only
+        if not self.check(TK_LINEBREAK):
+            raise Exception("Expected newline after 'henterb' in 'if'")
+
+        self.advance()  # skip newline
+        then_branch = self.parse_block()
+
         while self.check(TK_LINEBREAK):
             self.advance()
 
@@ -331,24 +334,27 @@ class Parser:
         if self.check(TK_RESERVED) and self.current_token.value in ('utifberb', 'lseerb'):
             kind = self.current_token.value
             self.advance()
-            # if block, skip blank lines
             while self.check(TK_LINEBREAK):
                 self.advance()
             if kind == 'utifberb':
-                else_branch = self._parse_if_branch()  # recursive chain
+                # nested 'elif'—do _not_ require its own 'ndeerb'
+                else_branch = self._parse_if_branch(require_end=False)
             else:
                 else_branch = self.parse_block()
 
         while self.check(TK_LINEBREAK):
             self.advance()
-        # now consume 'end' if present
-        if self.check(TK_RESERVED) and self.current_token.value == 'ndeerb':
+
+        # finally, close the block if we're the outermost if
+        if require_end:
+            if not (self.check(TK_RESERVED) and self.current_token.value == 'ndeerb'):
+                raise Exception("Expected 'ndeerb' to close 'if' block")
             self.advance()
-        # skip any blank lines after 'end'
-        while self.check(TK_LINEBREAK):
-            self.advance()
+            while self.check(TK_LINEBREAK):
+                self.advance()
 
         return IfNode(condition, then_branch, else_branch)
+
 
     def parse_statement(self):
         while self.check(TK_LINEBREAK):
@@ -443,7 +449,7 @@ class Parser:
     
     def parse_for(self):
         # consume 'for'
-        self.expect(TK_RESERVED)  # 'for'
+        self.expect(TK_RESERVED)  # 'orferb'
         # loop variable
         var_name = self.expect(TK_NAME).value
         # consume 'in'
@@ -453,16 +459,23 @@ class Parser:
         # iterable expression
         iterable = self.parse_expression()
 
-        # body: either a block if newline, or single statement
-        if self.check(TK_LINEBREAK):
-            body = self.parse_block()
-            # consume optional 'end' after the block
-            if self.check(TK_RESERVED) and self.current_token.value == 'ndeerb':
-                self.advance()
-        else:
-            body = self.parse_statement()
+        # ─────── enforce block‐only ───────
+        if not self.check(TK_LINEBREAK):
+            raise Exception("Expected newline after 'in <iterable>' in for‐loop")
+        self.advance()  # skip newline
+
+        body = self.parse_block()
+
+        if not (self.check(TK_RESERVED) and self.current_token.value == 'ndeerb'):
+            raise Exception("Expected 'ndeerb' to close 'orferb' block")
+        self.advance()
+
+        while self.check(TK_LINEBREAK):
+            self.advance()
+        # ────────────────────────────────────
 
         return ForNode(var_name, iterable, body)
+
 
     def parse_thing_def(self):
         self.expect(TK_RESERVED)      
@@ -543,9 +556,10 @@ class Parser:
                 self.advance()
 
             if self.check(TK_LINEBREAK):
-                else_branch = self.parse_block()
+                body = self.parse_block()
             else:
-                else_branch = self.parse_statement()
+                raise Exception("Expected newline after 'henterb' in case clause")
+
 
         if not (self.check(TK_RESERVED) and self.current_token.value == 'ndeerb'):
             raise Exception("Expected 'ndeerb' to close 'atchmerb' block")

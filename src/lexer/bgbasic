@@ -29,8 +29,16 @@ def run_file(path):
         sys.exit(1)
 
 def has_unclosed_block(buffer: str) -> bool:
-    opens = buffer.count("atchmerb") + buffer.count("if") + buffer.count("orferb")
-    closes = buffer.count("ndeerb")
+    """
+    Count only true block-openers and block-closers, not substrings.
+    """
+    # look for lines that start a block:
+    opens = (
+        buffer.count("if ")        # 'if <cond> henterb' line
+      + buffer.count("orferb ")    # 'orferb <var> in <iterable>' line
+      + buffer.count("atchmerb ")  # 'atchmerb <expr>' line
+    )
+    closes = buffer.count("ndeerb")  # each 'ndeerb' closes exactly one block
     return closes < opens
 
 def is_incomplete_input_error(msg: str, buffer: str) -> bool:
@@ -38,6 +46,7 @@ def is_incomplete_input_error(msg: str, buffer: str) -> bool:
         phrase in msg for phrase in [
             "Unexpected end of input",
             "Expected 'ndeerb'",
+            "Expected newline", 
             "got EOF",
             "unterminated block",
             "Expected at least one 'asecerb'",
