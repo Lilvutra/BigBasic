@@ -342,14 +342,11 @@ class Parser:
         while self.check(TK_LINEBREAK):
             self.advance()
         # now consume 'end' if present
-        if not (self.check(TK_RESERVED) and self.current_token.value == 'ndeerb'):
-            raise Exception(f"Expected 'ndeerb' to close 'if' block, got {self.current_token}")
-        self.advance()
-
-        # Skip blank lines after
+        if self.check(TK_RESERVED) and self.current_token.value == 'ndeerb':
+            self.advance()
+        # skip any blank lines after 'end'
         while self.check(TK_LINEBREAK):
             self.advance()
-
 
         return IfNode(condition, then_branch, else_branch)
 
@@ -460,13 +457,8 @@ class Parser:
         if self.check(TK_LINEBREAK):
             body = self.parse_block()
             # consume optional 'end' after the block
-            if not (self.check(TK_RESERVED) and self.current_token.value == 'ndeerb'):
-                raise Exception(f"Expected 'ndeerb' to close 'orferb' block, got {self.current_token}")
-            self.advance()
-
-            while self.check(TK_LINEBREAK):
+            if self.check(TK_RESERVED) and self.current_token.value == 'ndeerb':
                 self.advance()
-
         else:
             body = self.parse_statement()
 
