@@ -29,6 +29,8 @@ class Lexer:
             '/': lambda: self.make_simple_token(TK_DIV),
             '%': lambda: self.make_simple_token(TK_MOD),
             '.': lambda: self.make_simple_token(TK_DOT),
+            '--': lambda: self.make_simple_token(TK_UNARY_MINUS),
+            '++': lambda: self.make_simple_token(TK_UNARY_PLUS),
         }
 
     def advance(self):
@@ -127,6 +129,17 @@ class Lexer:
                 self.advance(); self.advance()
                 self.skip_comment()
                 continue
+
+            if self.char == '+' and self.peek() == '+':
+                self.advance(); self.advance()
+                tokens.append(Token(TK_UNARY_PLUS, '++'))
+                continue
+
+            if self.char == '-' and self.peek() == '-':
+                self.advance(); self.advance()
+                tokens.append(Token(TK_UNARY_MINUS, '--'))
+                continue
+
             elif self.char in LETTERS or self.char == '_':
                 tokens.append(self.read_identifier())
                 continue

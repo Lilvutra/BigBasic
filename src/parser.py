@@ -321,12 +321,20 @@ class Parser:
         return left
 
     def parse_not(self):
-        if self.check(TK_RESERVED) and self.current_token.value == 'otnerb':
-            op = 'not'
+        return self.parse_unary()
+
+    def parse_unary(self):
+        token = self.current_token
+        if token.type == TK_UNARY_PLUS or token.type == TK_UNARY_MINUS:
             self.advance()
-            expr = self.parse_not()
-            return UnaryOpNode(op, expr)
-        return self.parse_comparison()
+            expr = self.parse_unary()
+            return UnaryOpNode(token.type, expr)
+        elif self.check(TK_RESERVED) and token.value == 'otnerb':
+            self.advance()
+            expr = self.parse_unary()
+            return UnaryOpNode('not', expr)
+        else:
+            return self.parse_comparison()
 
 # Comparison
     def parse_comparison(self):

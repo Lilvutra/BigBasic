@@ -196,6 +196,21 @@ ndeerb
          """
 rintperb missingVar
          """),
+         ("Unary ops",
+    """^^ Still hasn't passed unary ops test
+a = 5
+b = -10
+c = True
+d = ++a
+e = 6
+rintperb a
+rintperb b
+rintperb e
+rintperb d
+rintperb a
+"""
+),
+
     ]
 
     for name, code in tests:

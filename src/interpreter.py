@@ -55,8 +55,8 @@ class Interpreter:
 # Assign variables
     def eval_AssignmentNode(self, node):
         thunk = self.eval(node.value)
-        self.env[node.name] = thunk
-        return thunk
+        self.env[node.name] = thunk   
+        return thunk                  
 
     def eval_IdentifierNode(self, node):
         return Thunk(lambda: (
@@ -199,6 +199,22 @@ class Interpreter:
 
     def _eval_unary(self, node):
         val = self._force(self.eval(node.expr))
+
+        if node.op in ('INCRE', 'DECRE'):
+            if not isinstance(node.expr, IdentifierNode):
+                raise RuntimeError(f"Unary '{node.op}' must be applied to a variable")
+            
+            name = node.expr.name
+            if name not in self.env:
+                raise RuntimeError(f"Undefined variable: {name}")
+            
+            current_val = self._force(self.env[name])
+            if not isinstance(current_val, (int, float)):
+                raise RuntimeError(f"Unary '{node.op}' requires a number, got {type(current_val).__name__}")
+
+            new_val = current_val + 1 if node.op == 'INCRE' else current_val - 1
+            self.env[name] = Thunk(lambda: new_val)
+            return new_val
 
         if node.op == 'not':
             truth = bool(val)
