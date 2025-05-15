@@ -168,6 +168,24 @@ class Interpreter:
         return Thunk(lambda: self._eval_unary(node))
 
     def _eval_unary(self, node):
+        
+        if node.op in ('INCRE', 'DECRE'):
+        # Must be applied to identifier only
+            if not isinstance(node.expr, IdentifierNode):
+                raise RuntimeError(f"Unary '{node.op}' must be applied to a variable")
+            name = node.expr.name
+            
+            if name not in self.env:
+                raise RuntimeError(f"Undefined variable: {name}")
+            current_val = self._force(self.env[name])
+            
+            if not isinstance(current_val, (int, float)):
+                raise RuntimeError(f"Unary '{node.op}' requires a number, got {type(current_val).__name__}")
+            
+            new_val = current_val + 1 if node.op == 'INCRE' else current_val - 1
+            self.env[name] = Thunk(lambda: new_val)
+            return new_val
+
         val = self._force(self.eval(node.expr))
         
         # not currently works just with booleans
@@ -185,6 +203,7 @@ class Interpreter:
             if not isinstance(val, (int, float)):
                 raise RuntimeError(f"Type error: unary '+' requires number, got {type(val).__name__}")
             return +val
+        
 
         raise RuntimeError(f"Unknown unary operator: {node.op}")
 

@@ -102,6 +102,7 @@ e = 6
 rintperb a
 rintperb b 
 rintperb e
+rintperb d
          """),
 
  
