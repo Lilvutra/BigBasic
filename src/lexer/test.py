@@ -42,6 +42,7 @@ rintperb 1 ^^ last comment
          """
 rintperb 5 < 10
 rintperb 10 > 42
+
          """),
 
         ("Boolean & Equality",
@@ -51,6 +52,59 @@ rintperb alseferb
 rintperb 1 == 1
 rintperb 2 != 3
          """),
+        
+        ("Literals",
+         """
+a = 5
+rintperb a 
+rintperb a != 6
+_private123 = 20
+rintperb 6 + 1.0
+rintperb _private123
+rintperb "gud"
+rintperb 5 ^^add
+rintperb -5 ^^add
+rintperb "Ferb"
+^^my_dict = {"name": "Alice", "age": 25}
+^^rintperb my_dict
+count = 0
+count = "hmm"
+rintperb count
+lazyDiv = 1/0
+rintperb lazyDiv
+         """),
+
+
+("truthy test", 
+         """
+x = 5
+if otnerb 5 henterb
+  rintperb "haha"
+utifberb 2 < 1 henterb 
+  rintperb "B"
+lseerb 
+  rintperb "C"
+ndeerb
+
+         """),   
+        
+   
+        
+        ("Unary ops", 
+         """
+^^ Still hasnt passed unary ops test
+a = 5
+b = -10
+c = True
+d = ++a
+e = 6
+
+rintperb a
+rintperb b 
+rintperb e
+         """),
+
+ 
 
         ("Logical Operators",
          """
@@ -67,9 +121,13 @@ rintperb otnerb (3 > 2)
 
         ("Chained butif / else",
          """
-if 1 < 0 henterb rintperb "A"
-utifberb 2 < 1 henterb rintperb "B"
-lseerb rintperb "C"
+if 1 < 0 henterb 
+    rintperb "A"
+utifberb 2 < 1 henterb 
+    rintperb "B"
+lseerb 
+    rintperb "C"
+ndeerb
          """),
 
         ("Multi-statement Block",
@@ -102,7 +160,9 @@ rintperb (2 + 3) * 4
         ("For loops", 
          """
 ^^ Single-statement for
-orferb i in [1,2,3] rintperb i
+orferb i in [1,2,3] 
+  rintperb i
+ndeerb
 
 ^^ Block-style for
 orferb j in [4,5,6]
@@ -174,18 +234,28 @@ rintperb x[4]    ^^ only 1–3 are valid
 
         ("Error: Non-boolean in if",
          """
-if 123 henterb rintperb "oops" ndeerb
+if 123 henterb 
+  rintperb "oops" ndeerb
          """),
 
         ("Error: Non-list in for",
          """
-orferb i in 42 rintperb i
+orferb i in 42 
+  rintperb i
+ndeerb
          """),
 
         ("Error: Undefined Variable",
          """
 rintperb missingVar
          """),
+        
+        ("IDK", 
+         """ 
+orferb i in [1,2,3]
+  rintperb i++
+ndeerb
+         """)
     ]
 
     for name, code in tests:

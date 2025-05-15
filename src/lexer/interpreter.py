@@ -169,7 +169,8 @@ class Interpreter:
 
     def _eval_unary(self, node):
         val = self._force(self.eval(node.expr))
-
+        
+        # not currently works just with booleans
         if node.op == 'not':
             if not isinstance(val, bool):
                 raise RuntimeError(f"Type error: 'not' requires boolean, got {type(val).__name__}")

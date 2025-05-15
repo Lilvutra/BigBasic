@@ -24,6 +24,10 @@ TK_DIV          = 'DIV'        # /
 TK_MOD          = 'MOD'        # %
 TK_DOT          = 'DOT'        # .
 
+#Add ++ and --
+TK_UNARY_PLUS = 'INCRE'
+TK_UNARY_MINUS = 'DECRE'
+
 
 #Add keywords "true", "false"
 RESERVED_WORDS = [

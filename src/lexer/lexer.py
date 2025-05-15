@@ -4,7 +4,7 @@ from token import (
     TK_L_PAREN, TK_R_PAREN, TK_L_BRACKET, TK_R_BRACKET,
     TK_FLOAT, TK_INT, TK_STRING, TK_NAME, TK_RESERVED,
     TK_SEP, TK_LINEBREAK, TK_DONE, TK_BOOL, TK_EQEQ, TK_NEQ,
-    TK_MUL, TK_DIV, TK_MOD, TK_DOT,
+    TK_MUL, TK_DIV, TK_MOD, TK_DOT, TK_UNARY_MINUS, TK_UNARY_PLUS,
     RESERVED_WORDS
 )
 
@@ -37,6 +37,8 @@ class Lexer:
             '/': lambda: self.make_simple_token(TK_DIV),
             '%': lambda: self.make_simple_token(TK_MOD),
             '.': lambda: self.make_simple_token(TK_DOT),
+            '--': lambda: self.make_simple_token(TK_UNARY_MINUS),
+            '++': lambda: self.make_simple_token(TK_UNARY_PLUS)
         }
 
     def advance(self):
@@ -120,7 +122,17 @@ class Lexer:
                 self.advance(); self.advance()
                 tokens.append(Token(TK_NEQ, '!='))
                 continue
-
+            
+            # Add Increment, Decrement operators 
+            if self.char == '+' and self.peek() == '+':
+                self.advance(); self.advance()
+                tokens.append(Token(TK_UNARY_PLUS, '++'))
+                continue
+            if self.char == '-' and self.peek() == '-':
+                self.advance(); self.advance()
+                tokens.append(Token(TK_UNARY_MINUS, '--'))
+                continue
+            
             if self.char in DIGITS or (
                 self.char == '.' and self.peek() is not None and self.peek() in DIGITS
             ):

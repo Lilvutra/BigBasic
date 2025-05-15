@@ -4,7 +4,7 @@ from token import (
     TK_L_PAREN, TK_R_PAREN, TK_L_BRACKET, TK_R_BRACKET,
     TK_FLOAT, TK_INT, TK_STRING, TK_NAME, TK_RESERVED,
     TK_SEP, TK_LINEBREAK, TK_DONE, TK_BOOL, TK_EQEQ, TK_NEQ,
-    TK_MUL, TK_DIV, TK_MOD, TK_DOT,
+    TK_MUL, TK_DIV, TK_MOD, TK_DOT, TK_UNARY_PLUS, TK_UNARY_MINUS,
     RESERVED_WORDS
 )
 
@@ -208,6 +208,7 @@ class Parser:
                 self.advance()
         return ProgramNode(statements)
 
+    # why parse_variable will parse expression with parse_or?
     def parse_variable(self):
         name = self.expect(TK_NAME).value
         self.expect(TK_ASSIGN)
@@ -216,7 +217,8 @@ class Parser:
 
     def parse_expression(self):
         return self.parse_or()
-
+    
+    #lowest precedence hierarchy
     def parse_or(self):
         left = self.parse_and()
         while self.check(TK_RESERVED) and self.current_token.value == 'or':
@@ -225,7 +227,8 @@ class Parser:
             right = self.parse_and()
             left = BinaryOpNode(left, op, right)
         return left
-
+    
+    #middle precedence hierarchy
     def parse_and(self):
         left = self.parse_not()
         while self.check(TK_RESERVED) and self.current_token.value == 'ndaerb':
@@ -234,15 +237,40 @@ class Parser:
             right = self.parse_not()
             left = BinaryOpNode(left, op, right)
         return left
-
+    """
+    #highest precendence hierarchy
     def parse_not(self):
         if self.check(TK_RESERVED) and self.current_token.value == 'otnerb':
             op = 'not'
             self.advance()
             expr = self.parse_not()
             return UnaryOpNode(op, expr)
+        elif self.current_token.value == "-":
+            op = '-'
+            self.advance()
+            expr = self.parse_not() #still right_associative
+            return UnaryOpNode(op, expr)
         return self.parse_comparison()
-
+    """
+   
+    def parse_not(self):
+        return self.parse_unary()
+    
+    def parse_unary(self):
+        token = self.current_token
+        print(f"token: {token}")
+        if token.type == TK_UNARY_PLUS or token.type == TK_UNARY_MINUS:
+            self.advance()
+            expr = self.parse_unary()
+            return UnaryOpNode(token.type, expr)
+        elif self.check(TK_RESERVED) and token.value == 'otnerb':
+            self.advance()
+            expr = self.parse_unary()
+            return UnaryOpNode('not', expr)
+        else:
+            return self.parse_comparison()
+        
+    
     def parse_comparison(self):
         left = self.parse_add_sub()
 
@@ -456,9 +484,10 @@ class Parser:
         if not (self.check(TK_RESERVED) and self.current_token.value == 'in'):
             raise Exception(f"Expected 'in', got {self.current_token}")
         self.advance()
+        
         # iterable expression
         iterable = self.parse_expression()
-
+        
         # ─────── enforce block‐only ───────
         if not self.check(TK_LINEBREAK):
             raise Exception("Expected newline after 'in <iterable>' in for‐loop")
