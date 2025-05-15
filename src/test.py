@@ -67,9 +67,13 @@ rintperb otnerb (3 > 2)
 
         ("Chained butif / else",
          """
-if 1 < 0 henterb rintperb "A"
-utifberb 2 < 1 henterb rintperb "B"
-lseerb rintperb "C"
+if 1 < 0 henterb 
+rintperb "A"
+utifberb 2 < 1 henterb 
+rintperb "B"
+lseerb 
+rintperb "C"
+ndeerb
          """),
 
         ("Multi-statement Block",
@@ -102,7 +106,9 @@ rintperb (2 + 3) * 4
         ("For loops", 
          """
 ^^ Single-statement for
-orferb i in [1,2,3] rintperb i
+orferb i in [1,2,3] 
+rintperb i
+ndeerb
 
 ^^ Block-style for
 orferb j in [4,5,6]
@@ -174,12 +180,16 @@ rintperb x[4]    ^^ only 1–3 are valid
 
         ("Error: Non-boolean in if",
          """
-if 123 henterb rintperb "oops" ndeerb
+if 123 henterb 
+rintperb "oops" 
+ndeerb
          """),
 
         ("Error: Non-list in for",
          """
-orferb i in 42 rintperb i
+orferb i in 42 
+rintperb i
+ndeerb
          """),
 
         ("Error: Undefined Variable",

@@ -1,11 +1,5 @@
-from parser import (
-    ProgramNode, AssignmentNode, ArrayNode, NumberNode, StringNode,
-    IdentifierNode, IndexNode, PrintNode, IfNode, BlockNode,
-    ForNode, ThingDefNode, NewNode, AttrAccessNode,
-    BooleanNode, UnaryOpNode, BinaryOpNode, ComparisonNode,
-    PatternWildcard, MatchNode, PatternVar, PatternLiteral
-)
-
+from parser import *
+from ast import *
 
 class Thunk:
     def __init__(self, fn):
@@ -51,22 +45,18 @@ class Interpreter:
         if isinstance(x, Thunk):
             return self._force(x.force())
         return x
-    
+
+# -------------------- EVALUATION ---------------------------------
+
+# Program
     def eval_ProgramNode(self, node):
         return self.interpret(node)
 
-    def eval_NumberNode(self, node):
-        return Thunk(lambda: node.value)
-
-    def eval_StringNode(self, node):
-        return Thunk(lambda: node.value)
-
-    def eval_BooleanNode(self, node):
-        return Thunk(lambda: node.value)
-
-    def eval_ArrayNode(self, node):
-        thunks = [ Thunk(lambda e=e: self._force(self.eval(e))) for e in node.elements ]
-        return Thunk(lambda: [self._force(t) for t in thunks])
+# Assign variables
+    def eval_AssignmentNode(self, node):
+        thunk = self.eval(node.value)
+        self.env[node.name] = thunk
+        return thunk
 
     def eval_IdentifierNode(self, node):
         return Thunk(lambda: (
@@ -74,7 +64,11 @@ class Interpreter:
             if node.name in self.env
             else (_ for _ in ()).throw(RuntimeError(f"Undefined variable: {node.name}"))
         ))
-
+    
+    def eval_ArrayNode(self, node):
+        thunks = [ Thunk(lambda e=e: self._force(self.eval(e))) for e in node.elements ]
+        return Thunk(lambda: [self._force(t) for t in thunks])
+    
     def eval_IndexNode(self, node):
         return Thunk(lambda: self._eval_index(node))
 
@@ -90,18 +84,14 @@ class Interpreter:
         if idx < 1 or idx > len(arr):
             raise RuntimeError(f"Index out of bounds: {idx} not in [1..{len(arr)}]")
         return arr[idx-1]
-
-
+    
+# Print
     def eval_PrintNode(self, node):
         val = self._force(self.eval(node.expression))
         print(val)
         return val
 
-    def eval_AssignmentNode(self, node):
-        thunk = self.eval(node.value)
-        self.env[node.name] = thunk
-        return thunk
-
+# If
     def eval_IfNode(self, node):
         val = self._force(self.eval(node.condition))
         # coerce any value to a boolean via truthiness
@@ -121,6 +111,7 @@ class Interpreter:
         else:
             return self.eval(branch)
 
+# Loop
     def eval_ForNode(self, node):
         iterable = self._force(self.eval(node.iterable))
         if not isinstance(iterable, list):
@@ -131,6 +122,7 @@ class Interpreter:
             result = self._exec_branch(node.body)
         return result
 
+# Struct
     def eval_ThingDefNode(self, node):
         # register the type definition
         if node.name in self.thing_defs:
@@ -164,6 +156,44 @@ class Interpreter:
             raise RuntimeError(f"Unknown attribute '{node.attr}' on {obj['__type__']}")
         return obj[node.attr]
 
+# Pattern matching
+    def eval_MatchNode(self, node):
+        val = self._force(self.eval(node.expr))
+        for pattern, body in node.cases:
+            ok, binds = self._match_pattern(pattern, val)
+            if ok:
+                old_env = self.env.copy()
+                for k,v in binds.items():
+                    self.env[k] = Thunk(lambda x=v: x)
+                result = self._exec_branch(body)
+                self.env = old_env
+                return result
+        if node.else_branch is not None:
+            return self._exec_branch(node.else_branch)
+        raise RuntimeError(f"No pattern matched value: {val}")
+
+    def _match_pattern(self, pattern, value):
+        if isinstance(pattern, PatternWildcard):
+            return True, {}
+        if isinstance(pattern, PatternLiteral):
+            return (value == pattern.value), {}
+        if isinstance(pattern, PatternVar):
+            return True, {pattern.name: value}
+        raise RuntimeError(f"Unknown pattern type: {pattern}")
+    
+# -------------------- EXPRESSIONS ---------------------------------
+
+# Literals
+    def eval_NumberNode(self, node):
+        return Thunk(lambda: node.value)
+
+    def eval_StringNode(self, node):
+        return Thunk(lambda: node.value)
+
+    def eval_BooleanNode(self, node):
+        return Thunk(lambda: node.value)
+
+# Unary
     def eval_UnaryOpNode(self, node):
         return Thunk(lambda: self._eval_unary(node))
 
@@ -186,13 +216,13 @@ class Interpreter:
 
         raise RuntimeError(f"Unknown unary operator: {node.op}")
 
+# Binary
     def eval_BinaryOpNode(self, node):
         return Thunk(lambda: self._eval_binary(node))
 
     def _eval_binary(self, node):
         op = node.op
 
-        # --- SHORT-CIRCUIT LOGIC ---
         if op == 'and':
             left = self._force(self.eval(node.left))
             if not isinstance(left, bool):
@@ -215,7 +245,6 @@ class Interpreter:
                 raise RuntimeError(f"Type error: 'or' requires booleans, got {type(right).__name__}")
             return right
 
-        # --- ARITHMETIC (EAGER) ---
         left = self._force(self.eval(node.left))
         right = self._force(self.eval(node.right))
 
@@ -247,6 +276,7 @@ class Interpreter:
 
         raise RuntimeError(f"Unknown binary operator: {op}")
 
+# Comparison
     def eval_ComparisonNode(self, node):
         return Thunk(lambda: self._eval_comparison(node))
 
@@ -273,31 +303,3 @@ class Interpreter:
             return left != right
 
         raise RuntimeError(f"Unknown comparison operator: {op}")
-
-
-    def _match_pattern(self, pattern, value):
-        if isinstance(pattern, PatternWildcard):
-            return True, {}
-        if isinstance(pattern, PatternLiteral):
-            return (value == pattern.value), {}
-        if isinstance(pattern, PatternVar):
-            return True, {pattern.name: value}
-        raise RuntimeError(f"Unknown pattern type: {pattern}")
-
-    def eval_MatchNode(self, node):
-        val = self._force(self.eval(node.expr))
-        for pattern, body in node.cases:
-            ok, binds = self._match_pattern(pattern, val)
-            if ok:
-                old_env = self.env.copy()
-                for k,v in binds.items():
-                    self.env[k] = Thunk(lambda x=v: x)
-                result = self._exec_branch(body)
-                self.env = old_env
-                return result
-        if node.else_branch is not None:
-            return self._exec_branch(node.else_branch)
-        raise RuntimeError(f"No pattern matched value: {val}")
-
-
-

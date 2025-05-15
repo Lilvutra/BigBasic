@@ -29,10 +29,7 @@ def run_file(path):
         sys.exit(1)
 
 def has_unclosed_block(buffer: str) -> bool:
-    """
-    Count only true block-openers and block-closers, not substrings.
-    """
-    # look for lines that start a block:
+    # look for lines that start a block:\
     opens = (
         buffer.count("if ")
       + buffer.count("orferb ")
