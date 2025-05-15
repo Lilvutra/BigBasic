@@ -61,6 +61,7 @@ def repl():
     print("FERB Latin REPL v0.1  (Ctrl-D or :exit to quit)\n")
     interpreter = Interpreter()
     buffer = ""
+    last_good_buffer = ""
 
     while True:
         try:
@@ -75,13 +76,24 @@ def repl():
         if line.strip() == ":clear":
             buffer = ""
             continue
-        if line.strip() == ":tokens":
-            if not buffer:
+        elif line.strip() == ":tokens":
+            if not last_good_buffer.strip():
                 print("(nothing to tokenize)")
-                continue
-            lexer = Lexer("<repl>", buffer)
-            tokens = lexer.tokenize()
-            print(tokens)
+            else:
+                lexer = Lexer("<repl>", last_good_buffer)
+                tokens = lexer.tokenize()
+                print(tokens)
+            continue
+
+        elif line.strip() == ":ast":
+            if not last_good_buffer.strip():
+                print("(no previous input)")
+            else:
+                lexer = Lexer("<repl>", last_good_buffer)
+                tokens = lexer.tokenize()
+                parser = Parser(tokens)
+                ast = parser.parse()
+                print(ast)
             continue
 
         if not line and not buffer:
@@ -100,7 +112,8 @@ def repl():
             ast = parser.parse()
 
             interpreter.interpret(ast)
-            buffer = ""  # clear on success
+            last_good_buffer = buffer  # <── save this
+            buffer = ""
 
         except InterpreterError as e:
             print(f"Runtime error: {e}")
@@ -111,6 +124,7 @@ def repl():
                 continue  # keep buffering
             print(f"Parse error: {e}")
             buffer = ""
+        
 
 
 def main():
