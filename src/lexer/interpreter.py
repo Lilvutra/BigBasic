@@ -103,10 +103,10 @@ class Interpreter:
         return thunk
 
     def eval_IfNode(self, node):
-        cond = self._force(self.eval(node.condition))
-        if not isinstance(cond, bool):
-            raise RuntimeError(f"Type error: if condition must be boolean, got {type(cond).__name__}")
-        if cond:
+        val = self._force(self.eval(node.condition))
+        # coerce any value to a boolean via truthiness
+        truth = bool(val)
+        if truth:
             return self._exec_branch(node.then_branch)
         if node.else_branch is not None:
             return self._exec_branch(node.else_branch)
@@ -171,9 +171,8 @@ class Interpreter:
         val = self._force(self.eval(node.expr))
 
         if node.op == 'not':
-            if not isinstance(val, bool):
-                raise RuntimeError(f"Type error: 'not' requires boolean, got {type(val).__name__}")
-            return not val
+            truth = bool(val)
+            return not truth
 
         if node.op in ('minus', '-'):
             if not isinstance(val, (int, float)):
