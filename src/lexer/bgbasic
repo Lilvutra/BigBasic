@@ -34,12 +34,17 @@ def has_unclosed_block(buffer: str) -> bool:
     """
     # look for lines that start a block:
     opens = (
-        buffer.count("if ")        # 'if <cond> henterb' line
-      + buffer.count("orferb ")    # 'orferb <var> in <iterable>' line
-      + buffer.count("atchmerb ")  # 'atchmerb <expr>' line
+        buffer.count("if ")
+      + buffer.count("orferb ")
+      + buffer.count("atchmerb ")
     )
-    closes = buffer.count("ndeerb")  # each 'ndeerb' closes exactly one block
-    return closes < opens
+    closes = buffer.count("ndeerb")
+
+    # also count unmatched '[' vs ']'
+    unclosed_arrays = buffer.count('[') - buffer.count(']')
+
+    # keep buffering if any Ferb‐block is unclosed OR any array literal is unclosed
+    return (closes < opens) or (unclosed_arrays > 0)
 
 def is_incomplete_input_error(msg: str, buffer: str) -> bool:
     return any(
@@ -47,6 +52,7 @@ def is_incomplete_input_error(msg: str, buffer: str) -> bool:
             "Unexpected end of input",
             "Expected 'ndeerb'",
             "Expected newline", 
+            "Expected ']'",
             "got EOF",
             "unterminated block",
             "Expected at least one 'asecerb'",

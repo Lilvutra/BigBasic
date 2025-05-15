@@ -198,7 +198,7 @@ class Interpreter:
             if not isinstance(left, bool):
                 raise RuntimeError(f"Type error: 'and' requires booleans, got {type(left).__name__}")
             if not left:
-                return False  # ⛔ Skip right
+                return False  # skip right
             right = self._force(self.eval(node.right))
             if not isinstance(right, bool):
                 raise RuntimeError(f"Type error: 'and' requires booleans, got {type(right).__name__}")
@@ -209,7 +209,7 @@ class Interpreter:
             if not isinstance(left, bool):
                 raise RuntimeError(f"Type error: 'or' requires booleans, got {type(left).__name__}")
             if left:
-                return True  # ⛔ Skip right
+                return True  # skip right
             right = self._force(self.eval(node.right))
             if not isinstance(right, bool):
                 raise RuntimeError(f"Type error: 'or' requires booleans, got {type(right).__name__}")

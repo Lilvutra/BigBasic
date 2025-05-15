@@ -320,7 +320,7 @@ class Parser:
             raise Exception(f"Expected 'henterb', got {self.current_token}")
         self.advance()
 
-        # ❗ enforce block-style only
+        # enforce block-style only
         if not self.check(TK_LINEBREAK):
             raise Exception("Expected newline after 'henterb' in 'if'")
 
