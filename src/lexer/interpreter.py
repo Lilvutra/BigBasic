@@ -256,10 +256,14 @@ class Interpreter:
         op = node.op
 
         if op in ('<', 'LT'):
+            if isinstance(left, (int, float)) and isinstance(right, (int, float)):
+                return left < right
             if type(left) != type(right):
                 raise RuntimeError(f"Cannot compare {type(left).__name__} and {type(right).__name__}")
             return left < right
         if op in ('>', 'GT'):
+            if isinstance(left, (int, float)) and isinstance(right, (int, float)):
+                return left > right
             if type(left) != type(right):
                 raise RuntimeError(f"Cannot compare {type(left).__name__} and {type(right).__name__}")
             return left > right
