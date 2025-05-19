@@ -54,9 +54,17 @@ class Interpreter:
 
 # Assign variables
     def eval_AssignmentNode(self, node):
-        thunk = self.eval(node.value)
-        self.env[node.name] = thunk   
-        return thunk                  
+        old_env = self.env.copy()
+
+        def thunk_fn():
+            prev_interp = Interpreter()
+            prev_interp.env = old_env
+            prev_interp.thing_defs = self.thing_defs  
+            return prev_interp._force(prev_interp.eval(node.value))
+
+        self.env[node.name] = Thunk(thunk_fn)
+        return self.env[node.name]
+                
 
     def eval_IdentifierNode(self, node):
         return Thunk(lambda: (
@@ -73,17 +81,18 @@ class Interpreter:
         return Thunk(lambda: self._eval_index(node))
 
     def _eval_index(self, node):
-        if node.name not in self.env:
-            raise RuntimeError(f"Undefined variable: {node.name}")
-        arr = self._force(self.env[node.name])
-        idx = self._force(self.eval(node.index))
-        if not isinstance(arr, list):
-            raise RuntimeError(f"Type error: indexing non-list {arr!r}")
-        if not isinstance(idx, int):
-            raise RuntimeError(f"Type error: list index must be integer, got {type(idx).__name__}")
-        if idx < 1 or idx > len(arr):
-            raise RuntimeError(f"Index out of bounds: {idx} not in [1..{len(arr)}]")
-        return arr[idx-1]
+        collection = self._force(self.eval(node.expr))
+        index = self._force(self.eval(node.index))
+
+        if not isinstance(index, int):
+            raise RuntimeError(f"Index must be integer, got {type(index).__name__}")
+        if not isinstance(collection, list):
+            raise RuntimeError(f"Cannot index non-list: {collection}")
+
+        if index < 1 or index > len(collection):
+            raise RuntimeError(f"Index out of bounds: {index} not in [1..{len(collection)}]")
+
+        return collection[index - 1]
     
 # Print
     def eval_PrintNode(self, node):
@@ -203,13 +212,13 @@ class Interpreter:
         if node.op in ('INCRE', 'DECRE'):
             if not isinstance(node.expr, IdentifierNode):
                 raise RuntimeError(f"Unary '{node.op}' must be applied to a variable")
-            
+
             name = node.expr.name
             if name not in self.env:
                 raise RuntimeError(f"Undefined variable: {name}")
-            
+
             current_val = self._force(self.env[name])
-            if not isinstance(current_val, (int, float)):
+            if not isinstance(current_val, (int, float)) or isinstance(current_val, bool):
                 raise RuntimeError(f"Unary '{node.op}' requires a number, got {type(current_val).__name__}")
 
             new_val = current_val + 1 if node.op == 'INCRE' else current_val - 1
@@ -217,17 +226,16 @@ class Interpreter:
             return new_val
 
         if node.op == 'not':
-            truth = bool(val)
-            return not truth
+            return not bool(val)
 
         if node.op in ('minus', '-'):
-            if not isinstance(val, (int, float)):
-                raise RuntimeError(f"Type error: unary '-' requires number, got {type(val).__name__}")
+            if not isinstance(val, (int, float)) or isinstance(val, bool):
+                raise RuntimeError(f"Unary '-' requires a number, got {type(val).__name__}")
             return -val
 
         if node.op in ('plus', '+'):
-            if not isinstance(val, (int, float)):
-                raise RuntimeError(f"Type error: unary '+' requires number, got {type(val).__name__}")
+            if not isinstance(val, (int, float)) or isinstance(val, bool):
+                raise RuntimeError(f"Unary '+' requires a number, got {type(val).__name__}")
             return +val
 
         raise RuntimeError(f"Unknown unary operator: {node.op}")
@@ -242,55 +250,72 @@ class Interpreter:
         if op == 'and':
             left = self._force(self.eval(node.left))
             if not isinstance(left, bool):
-                raise RuntimeError(f"Type error: 'and' requires booleans, got {type(left).__name__}")
+                raise RuntimeError(f"'and' requires booleans, got {type(left).__name__}")
             if not left:
                 return False  # skip right
             right = self._force(self.eval(node.right))
             if not isinstance(right, bool):
-                raise RuntimeError(f"Type error: 'and' requires booleans, got {type(right).__name__}")
+                raise RuntimeError(f"'and' requires booleans, got {type(right).__name__}")
             return right
 
         if op == 'or':
             left = self._force(self.eval(node.left))
             if not isinstance(left, bool):
-                raise RuntimeError(f"Type error: 'or' requires booleans, got {type(left).__name__}")
+                raise RuntimeError(f"'or' requires booleans, got {type(left).__name__}")
             if left:
                 return True  # skip right
             right = self._force(self.eval(node.right))
             if not isinstance(right, bool):
-                raise RuntimeError(f"Type error: 'or' requires booleans, got {type(right).__name__}")
+                raise RuntimeError(f"'or' requires booleans, got {type(right).__name__}")
             return right
 
         left = self._force(self.eval(node.left))
         right = self._force(self.eval(node.right))
 
-        # arithmetic
+        if isinstance(left, Thunk) or isinstance(right, Thunk):
+            raise RuntimeError("Internal error: binary operands must not be thunks")
+
         if op in ('+', 'PLUS'):
-            if not isinstance(left, (int,float)) or not isinstance(right, (int,float)):
-                raise RuntimeError(f"Type error: + requires numbers, got {type(left).__name__}, {type(right).__name__}")
+            if not (isinstance(left, (int, float)) and not isinstance(left, bool)):
+                raise RuntimeError(f"'+' requires numbers, got {type(left).__name__}")
+            if not (isinstance(right, (int, float)) and not isinstance(right, bool)):
+                raise RuntimeError(f"'+' requires numbers, got {type(right).__name__}")
             return left + right
+
         if op in ('-', 'MINUS'):
-            if not isinstance(left, (int,float)) or not isinstance(right, (int,float)):
-                raise RuntimeError(f"Type error: - requires numbers, got {type(left).__name__}, {type(right).__name__}")
+            if not (isinstance(left, (int, float)) and not isinstance(left, bool)):
+                raise RuntimeError(f"'-' requires numbers, got {type(left).__name__}")
+            if not (isinstance(right, (int, float)) and not isinstance(right, bool)):
+                raise RuntimeError(f"'-' requires numbers, got {type(right).__name__}")
             return left - right
+
         if op in ('*', 'MUL'):
-            if not isinstance(left, (int,float)) or not isinstance(right, (int,float)):
-                raise RuntimeError(f"Type error: * requires numbers, got {type(left).__name__}, {type(right).__name__}")
+            if not (isinstance(left, (int, float)) and not isinstance(left, bool)):
+                raise RuntimeError(f"'*' requires numbers, got {type(left).__name__}")
+            if not (isinstance(right, (int, float)) and not isinstance(right, bool)):
+                raise RuntimeError(f"'*' requires numbers, got {type(right).__name__}")
             return left * right
+
         if op in ('/', 'DIV'):
-            if not isinstance(left, (int,float)) or not isinstance(right, (int,float)):
-                raise RuntimeError(f"Type error: / requires numbers, got {type(left).__name__}, {type(right).__name__}")
+            if not (isinstance(left, (int, float)) and not isinstance(left, bool)):
+                raise RuntimeError(f"'/' requires numbers, got {type(left).__name__}")
+            if not (isinstance(right, (int, float)) and not isinstance(right, bool)):
+                raise RuntimeError(f"'/' requires numbers, got {type(right).__name__}")
             if right == 0:
-                raise RuntimeError("Divide by zero")
+                raise RuntimeError("Division by zero")
             return left / right
+
         if op in ('%', 'MOD'):
-            if not isinstance(left, int) or not isinstance(right, int):
-                raise RuntimeError(f"Type error: % requires integers, got {type(left).__name__}, {type(right).__name__}")
+            if not (isinstance(left, int) and not isinstance(left, bool)):
+                raise RuntimeError(f"'%' requires integers, got {type(left).__name__}")
+            if not (isinstance(right, int) and not isinstance(right, bool)):
+                raise RuntimeError(f"'%' requires integers, got {type(right).__name__}")
             if right == 0:
-                raise RuntimeError("Divide by zero")
+                raise RuntimeError("Modulo by zero")
             return left % right
 
         raise RuntimeError(f"Unknown binary operator: {op}")
+
 
 # Comparison
     def eval_ComparisonNode(self, node):
@@ -301,21 +326,25 @@ class Interpreter:
         right = self._force(self.eval(node.right))
         op = node.op
 
-        if op in ('<', 'LT'):
-            if isinstance(left, (int, float)) and isinstance(right, (int, float)):
-                return left < right
-            if type(left) != type(right):
-                raise RuntimeError(f"Cannot compare {type(left).__name__} and {type(right).__name__}")
-            return left < right
-        if op in ('>', 'GT'):
-            if isinstance(left, (int, float)) and isinstance(right, (int, float)):
-                return left > right
-            if type(left) != type(right):
-                raise RuntimeError(f"Cannot compare {type(left).__name__} and {type(right).__name__}")
-            return left > right
+        if isinstance(left, Thunk) or isinstance(right, Thunk):
+            raise RuntimeError("Internal error: unforced thunk in comparison")
+
         if op in ('==', 'EQEQ'):
             return left == right
         if op in ('!=', 'NEQ'):
             return left != right
 
-        raise RuntimeError(f"Unknown comparison operator: {op}")
+        if type(left) != type(right):
+            raise RuntimeError(f"Cannot compare {type(left).__name__} and {type(right).__name__} with '{op}'")
+
+        if isinstance(left, bool):
+            raise RuntimeError(f"Cannot compare booleans with '{op}'")
+
+        if isinstance(left, (int, float)):
+            if op in ('<', 'LT'):
+                return left < right
+            if op in ('>', 'GT'):
+                return left > right
+
+        raise RuntimeError(f"Unsupported comparison operator: {op}")
+

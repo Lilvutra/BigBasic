@@ -65,7 +65,7 @@ def repl():
 
     while True:
         try:
-            prompt = ">>> " if not buffer else "... "
+            prompt = "erb erb >>> " if not buffer else "... "
             line = input(prompt).rstrip()
         except EOFError:
             print("\nExiting.")

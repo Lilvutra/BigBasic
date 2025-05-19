@@ -25,8 +25,6 @@ TK_MOD          = 'MOD'        # %
 TK_DOT          = 'DOT'        # .
 TK_UNARY_PLUS   = 'INCRE'
 TK_UNARY_MINUS  = 'DECRE'
-TK_POST_INCRE   = 'POST_INCRE'
-TK_POST_DECRE   = 'POST_DECRE'
 
 
 #Add keywords "true", "false"

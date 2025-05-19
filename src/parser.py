@@ -394,8 +394,18 @@ class Parser:
         elif self.check(TK_L_BRACKET):
             node = self.parse_array_expression()
 
-        elif self.check(TK_NAME) and self.peek() and self.peek().type == TK_L_BRACKET:
-            node = self.parse_indexing()
+        elif self.check(TK_NAME):
+            name = self.current_token.value
+            self.advance()
+            node = IdentifierNode(name)
+
+            while self.check(TK_L_BRACKET):
+                self.advance()
+                index_expr = self.parse_expression()
+                self.expect(TK_R_BRACKET)
+                node = IndexNode(node, index_expr) 
+
+            return self._maybe_parse_attr(node)
 
         elif self.check(TK_NAME):
             name = self.current_token.value

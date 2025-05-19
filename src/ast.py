@@ -53,11 +53,11 @@ class ArrayNode:
         return f"ArrayNode(elements={self.elements})"
     
 class IndexNode:
-    def __init__(self, name, index):
-        self.name = name
+    def __init__(self, expr, index):
+        self.expr = expr
         self.index = index
     def __repr__(self):
-        return f"IndexNode(name={self.name}, index={self.index})"
+        return f"IndexNode(expr={self.expr}, index={self.index})"
 
 # Print
 class PrintNode:
